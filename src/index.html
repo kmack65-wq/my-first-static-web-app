@@ -2,32 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Kadean Construction | Subcontractor Safety Orientation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subcontractor Safety Orientation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #121212;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0f0f0f;
       color: #ffffff;
-      display: flex;
-      justify-content: center;
     }
 
     .container {
-      max-width: 800px;
-      width: 100%;
-      padding: 20px;
-    }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .logo img {
-      max-width: 220px;
+      max-width: 900px;
+      margin: auto;
+      padding: 30px 20px 60px;
     }
 
     h1 {
@@ -35,83 +24,69 @@
       margin-bottom: 10px;
     }
 
-    .video-wrapper {
-      background: #1e1e1e;
-      padding: 20px;
-      border-radius: 8px;
+    p.subtitle {
       text-align: center;
-      margin: 20px 0;
+      opacity: 0.8;
+      margin-bottom: 30px;
     }
 
-    .video-wrapper a {
-      color: #0a84ff;
-      font-size: 18px;
-      font-weight: bold;
-      text-decoration: none;
+    .video-container {
+      background: #1c1c1c;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 30px;
     }
 
-    .video-wrapper label {
+    label {
       display: block;
-      margin-top: 15px;
-      font-size: 16px;
-    }
-
-    form label {
-      display: block;
-      margin-top: 15px;
+      margin-top: 18px;
+      margin-bottom: 6px;
       font-weight: bold;
     }
 
     input, select {
       width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 4px;
+      padding: 12px;
+      border-radius: 6px;
       border: none;
       font-size: 16px;
     }
 
     canvas {
-      margin-top: 10px;
-      background: #1e1e1e;
-      border: 1px solid #555;
-      border-radius: 4px;
-      touch-action: none;
-    }
-
-    .btn {
-      margin-top: 20px;
-      padding: 14px;
       width: 100%;
-      background: #0a84ff;
-      color: white;
-      border: none;
-      font-size: 18px;
+      height: 180px;
+      background: #222;
       border-radius: 6px;
-      cursor: not-allowed;
-      opacity: 0.6;
+      border: 1px solid #444;
     }
 
-    .btn.enabled {
+    .signature-actions {
+      margin-top: 8px;
+    }
+
+    button {
+      margin-top: 30px;
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #1e90ff;
+      color: white;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    button.enabled {
       cursor: pointer;
       opacity: 1;
     }
 
-    .clear-btn {
-      margin-top: 10px;
-      background: #444;
-      color: white;
-      border: none;
-      padding: 8px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .footer {
-      margin-top: 30px;
+    footer {
       text-align: center;
-      font-size: 14px;
-      opacity: 0.7;
+      margin-top: 40px;
+      font-size: 13px;
+      opacity: 0.6;
     }
   </style>
 </head>
@@ -119,132 +94,164 @@
 <body>
   <div class="container">
 
-    <div class="logo">
-      <img src="https://via.placeholder.com/220x80?text=KADEAN+CONSTRUCTION" alt="Kadean Construction">
-    </div>
-
     <h1>Subcontractor Safety Orientation</h1>
-    <p>Please watch the safety orientation video before completing this form.</p>
+    <p class="subtitle">
+      Please watch the full safety orientation video before completing the form.
+    </p>
 
-    <div class="video-wrapper">
-      <a href="https://youtu.be/YSVeHAzz1oA" target="_blank">
-        ▶ Watch Safety Orientation Video
-      </a>
-
-      <label>
-        <input type="checkbox" id="videoConfirm">
-        I confirm that I watched the full safety orientation video
-      </label>
+    <!-- VIDEO -->
+    <div class="video-container">
+      <video
+        id="safetyVideo"
+        controls
+        preload="metadata"
+        controlsList="nodownload"
+        style="width:100%; border-radius:8px;"
+      >
+        <source
+          src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
     </div>
 
-    <form id="intakeForm">
+    <!-- FORM -->
+    <form id="ackForm">
 
       <label>Full Name</label>
-      <input type="text" id="fullName" required>
+      <input required id="fullName" />
 
       <label>Company Name</label>
-      <input type="text" id="companyName" required>
+      <input required id="companyName" />
 
       <label>Job Site</label>
-      <select id="jobSite" required>
-        <option value="">Select a job site</option>
-        <option value="Site A">Site A</option>
-        <option value="Site B">Site B</option>
+      <select required id="jobSite">
+        <option value="">Select site</option>
+        <option>Site A</option>
+        <option>Site B</option>
+        <option>Site C</option>
       </select>
 
       <label>Phone</label>
-      <input type="tel" id="phone" required>
+      <input required id="phone" />
 
       <label>Email</label>
-      <input type="email" id="email">
+      <input type="email" required id="email" />
 
       <label>Signature</label>
-      <canvas id="signaturePad" width="760" height="200"></canvas>
-      <button type="button" class="clear-btn" onclick="clearSignature()">Clear Signature</button>
+      <canvas id="signature"></canvas>
 
-      <button id="submitBtn" class="btn" disabled>Submit Acknowledgement</button>
+      <div class="signature-actions">
+        <button type="button" onclick="clearSignature()" style="margin-top:8px;">
+          Clear Signature
+        </button>
+      </div>
 
+      <button id="submitBtn" disabled>
+        Submit Acknowledgment
+      </button>
     </form>
 
-    <div class="footer">
+    <footer>
       © 2026 Kadean Construction Company
-    </div>
+    </footer>
   </div>
 
-<script>
-  // ---- Video confirmation gate ----
-  const submitBtn = document.getElementById('submitBtn');
-  const videoConfirm = document.getElementById('videoConfirm');
-  submitBtn.disabled = true;
+  <!-- SCRIPT -->
+  <script>
+    /* =====================
+       VIDEO WATCH TRACKING
+    ====================== */
+    const video = document.getElementById("safetyVideo");
+    const submitBtn = document.getElementById("submitBtn");
+    let watchedEnough = false;
 
-  videoConfirm.addEventListener('change', () => {
-    submitBtn.disabled = !videoConfirm.checked;
-    submitBtn.classList.toggle('enabled', videoConfirm.checked);
-  });
-
-  // ---- Signature pad ----
-  const canvas = document.getElementById('signaturePad');
-  const ctx = canvas.getContext('2d');
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 2;
-
-  let drawing = false;
-
-  canvas.addEventListener('pointerdown', e => {
-    drawing = true;
-    ctx.beginPath();
-    ctx.moveTo(e.offsetX, e.offsetY);
-  });
-
-  canvas.addEventListener('pointermove', e => {
-    if (!drawing) return;
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-  });
-
-  canvas.addEventListener('pointerup', () => drawing = false);
-  canvas.addEventListener('pointerleave', () => drawing = false);
-
-  function clearSignature() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  // ---- Submit handler ----
-  document.getElementById('intakeForm').addEventListener('submit', async e => {
-    e.preventDefault();
-
-    if (!videoConfirm.checked) {
-      alert('You must confirm that you watched the safety video.');
-      return;
-    }
-
-    const payload = {
-      fullName: fullName.value,
-      companyName: companyName.value,
-      jobSite: jobSite.value,
-      phone: phone.value,
-      email: email.value,
-      signature: canvas.toDataURL()
-    };
-
-    const res = await fetch('/api/submit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': 'kadean-intake-2026-secure-9f3a2c'
-      },
-      body: JSON.stringify(payload)
+    video.addEventListener("timeupdate", () => {
+      if (video.duration && video.currentTime / video.duration > 0.95) {
+        watchedEnough = true;
+        submitBtn.disabled = false;
+        submitBtn.classList.add("enabled");
+      }
     });
 
-    if (res.ok) {
-      alert('Submission successful. Thank you!');
-      location.reload();
-    } else {
-      alert('Submission failed. Please contact Kadean.');
-    }
-  });
-</script>
+    /* =====================
+       SIGNATURE PAD
+    ====================== */
+    const canvas = document.getElementById("signature");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
 
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    canvas.addEventListener("mousedown", e => {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    canvas.addEventListener("mousemove", e => {
+      if (!drawing) return;
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+
+    canvas.addEventListener("mouseup", () => drawing = false);
+    canvas.addEventListener("mouseleave", () => drawing = false);
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    /* =====================
+       SUBMIT HANDLER
+    ====================== */
+    document.getElementById("ackForm").addEventListener("submit", async e => {
+      e.preventDefault();
+
+      if (!watchedEnough) {
+        alert("Please watch the full video before submitting.");
+        return;
+      }
+
+      const payload = {
+        fullName: fullName.value,
+        companyName: companyName.value,
+        jobSite: jobSite.value,
+        phone: phone.value,
+        email: email.value,
+        signature: canvas.toDataURL("image/png"),
+        watchedAt: new Date().toISOString()
+      };
+
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "kadean-intake-2026-secure-9f3a2c"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert("Acknowledgment submitted successfully.");
+        location.reload();
+      } else {
+        alert("Submission failed. Please try again.");
+      }
+    });
+
+    /* Disable right-click (light deterrent) */
+    document.addEventListener("contextmenu", e => e.preventDefault());
+  </script>
 </body>
 </html>
+
 

@@ -2,12 +2,12 @@
   "name": "api",
   "version": "1.0.0",
   "scripts": {
-    "start": "func start"
+    "start": "func start",
+    "build": "npm install"
   },
   "dependencies": {
     "axios": "^1.6.0",
     "node-fetch": "^2.6.7",
-    "pdf-lib": "^1.17.1",
-    "pdfkit": "^0.17.2"
+    "pdfkit": "^0.14.0"
   }
 }

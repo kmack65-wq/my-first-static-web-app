@@ -1,231 +1,51 @@
-:root {
-  --bg: #0f172a;
-  --card: #1e293b;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-  --primary: #38bdf8;
-  --border: #334155;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body.dark {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
-.container {
-  max-width: 640px;
-  margin: 20px auto;
-  background: var(--card);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-}
-
-.logo {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.logo img {
-  max-height: 60px;
-}
-
-h1 {
-  text-align: center;
-  font-size: 1.6rem;
-}
-
-h2 {
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-.section {
-  margin-top: 25px;
-}
-
-.video-wrapper {
-  position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
-}
-
-.video-wrapper iframe {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
-
-.note {
-  margin-top: 10px;
-  background: #020617;
-  border-left: 4px solid var(--primary);
-  padding: 10px;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
-label {
-  display: block;
-  margin-top: 15px;
-  font-weight: 600;
-}
-
-input, select {
-  width: 100%;
-  padding: 12px;
-  margin-top: 5px;
-  font-size: 16px;
-  background: #020617;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-
-input[readonly] {
-  background: #020617;
-  color: var(--muted);
-  cursor: not-allowed;
-}
-
-canvas {
-  width: 100%;
-  height: 160px;
-  margin-top: 10px;
-  border: 2px dashed var(--border);
-  border-radius: 8px;
-  background: #020617;
-  touch-action: none;
-}
-
-.signature-actions {
-  margin-top: 8px;
-  text-align: right;
-}
-
-.signature-actions button {
-  background: none;
-  border: none;
-  color: var(--primary);
-  cursor: pointer;
-}
-
-button[type="submit"] {
-  margin-top: 30px;
-  width: 100%;
-  padding: 14px;
-  background: var(--primary);
-  color: #020617;
-  border: none;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-button:disabled {
-  background: #475569;
-  cursor: not-allowed;
-}
-
-footer {
-  margin-top: 15px;
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-* {
-  box-sizing: border-box;
-}
-
 body {
+  background: #0f172a;
+  color: #fff;
+  font-family: Arial, sans-serif;
   margin: 0;
-  background: #0f0f0f;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
-.container {
-  max-width: 800px;
-  margin: auto;
-  padding: 16px;
-}
-
-.logo {
-  max-width: 180px;
-  display: block;
-  margin: 0 auto 16px;
-}
-
-h1 {
+.header {
+  padding: 20px;
   text-align: center;
 }
 
-.subtitle {
-  text-align: center;
+.notice {
   opacity: 0.8;
 }
 
-video {
-  width: 100%;
-  margin-bottom: 24px;
+.section {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+#videoWrapper {
+  aspect-ratio: 16 / 9;
+  background: #000;
   border-radius: 8px;
 }
 
-label {
-  display: block;
-  margin-top: 14px;
-  font-weight: bold;
-}
-
-input, select {
+#trainingVideo iframe {
   width: 100%;
-  padding: 12px;
-  border-radius: 6px;
-  border: none;
-  font-size: 16px;
+  height: 100%;
 }
 
 canvas {
   width: 100%;
-  background: #222;
-  border-radius: 6px;
-  margin-top: 6px;
+  background: #111;
+  border: 1px solid #333;
+  margin-bottom: 10px;
 }
 
 button {
   width: 100%;
-  margin-top: 16px;
-  padding: 14px;
-  border-radius: 6px;
-  border: none;
-  font-size: 16px;
+  padding: 12px;
+  margin-top: 10px;
 }
 
-#submitBtn {
-  background: #0d4f8b;
-  color: white;
-  opacity: 0.5;
+.status {
+  margin-top: 10px;
+  font-weight: bold;
 }
 
-#submitBtn.enabled {
-  opacity: 1;
-}
-
-#clearSignature {
-  background: #444;
-  color: white;
-}
-
-footer {
-  text-align: center;
-  margin-top: 24px;
-  opacity: 0.6;
-}

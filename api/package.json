@@ -1,9 +1,13 @@
 {
-  "name": "subcontractor-intake-api",
+  "name": "api",
   "version": "1.0.0",
-  "private": true,
+  "scripts": {
+    "start": "func start"
+  },
   "dependencies": {
-    "@azure/functions": "^4.0.0",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "node-fetch": "^2.6.7",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.17.2"
   }
 }

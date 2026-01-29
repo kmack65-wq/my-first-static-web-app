@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,58 +8,70 @@
 </head>
 
 <body>
-  <main class="container">
-    <h1>Safety Orientation Acknowledgement</h1>
-    <h2>Required Safety Video</h2>
+  <div class="page-bg">
+    <div class="app-card">
 
-    <!-- VIDEO -->
-    <div class="video-wrapper">
-      <iframe
-        id="trainingVideo"
-        src="https://www.youtube.com/embed/YSVeHAzz1oA?enablejsapi=1"
-        title="Safety Orientation Video"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-      </iframe>
+      <!-- HEADER -->
+      <div class="header">
+        <img src="assets/logo.png" alt="Kadean Construction" class="logo" />
+        <h1>Safety Orientation Acknowledgement</h1>
+        <h2>Required Safety Video</h2>
+      </div>
+
+      <!-- VIDEO CARD -->
+      <div class="video-card">
+        <div class="video-wrapper">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/YSVeHAzz1oA?rel=0"
+            title="Safety Orientation Video"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+
+        <div class="video-warning">
+          You must watch the entire video before submitting this form.
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <form id="ackForm" class="form">
+
+        <label>Full Name</label>
+        <input id="fullName" required />
+
+        <label>Company Name</label>
+        <input id="companyName" required />
+
+        <label>Job Site</label>
+        <select id="jobSite">
+          <option value="">Select a job site</option>
+          <option>25-129 PHC Cardiac Rehab</option>
+          <option>364 Logistics Center</option>
+          <option>Fondren Surgical Suites</option>
+        </select>
+
+        <label>Phone</label>
+        <input id="phone" />
+
+        <label>Email</label>
+        <input id="email" type="email" />
+
+        <label>Signature</label>
+        <canvas id="signaturePad"></canvas>
+        <button type="button" id="clearSignature" class="secondary">
+          Clear Signature
+        </button>
+
+        <button id="submitBtn" class="primary" disabled>
+          Submit Acknowledgement
+        </button>
+      </form>
+
     </div>
+  </div>
 
-    <p id="status" class="status">You must watch the entire video before submitting.</p>
-
-    <!-- SIGNATURE -->
-    <h3>Signature</h3>
-    <canvas id="signaturePad" width="500" height="200"></canvas>
-    <button type="button" id="clearSignature">Clear Signature</button>
-
-    <!-- FORM -->
-    <form id="ackForm">
-      <label>Full Name</label>
-      <input id="fullName" required />
-
-      <label>Company Name</label>
-      <input id="companyName" required />
-
-      <label>Job Site</label>
-      <select id="jobSite">
-        <option value="">Select a job site</option>
-        <option>25-129 PHC Cardiac Rehab</option>
-        <option>364 Logistics Center</option>
-        <option>Fondren Surgical Suites</option>
-      </select>
-
-      <label>Phone</label>
-      <input id="phone" />
-
-      <label>Email</label>
-      <input id="email" type="email" />
-
-      <label>Superintendent</label>
-      <input id="superintendent" readonly />
-
-      <button id="submitBtn" disabled>Submit Acknowledgement</button>
-    </form>
-  </main>
-
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="script.js"></script>
   <script src="app.js"></script>
 </body>

@@ -2,256 +2,113 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Subcontractor Safety Orientation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #0f0f0f;
-      color: #ffffff;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 30px 20px 60px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    p.subtitle {
-      text-align: center;
-      opacity: 0.8;
-      margin-bottom: 30px;
-    }
-
-    .video-container {
-      background: #1c1c1c;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 30px;
-    }
-
-    label {
-      display: block;
-      margin-top: 18px;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 6px;
-      border: none;
-      font-size: 16px;
-    }
-
-    canvas {
-      width: 100%;
-      height: 180px;
-      background: #222;
-      border-radius: 6px;
-      border: 1px solid #444;
-    }
-
-    .signature-actions {
-      margin-top: 8px;
-    }
-
-    button {
-      margin-top: 30px;
-      width: 100%;
-      padding: 15px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      background: #1e90ff;
-      color: white;
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
-
-    button.enabled {
-      cursor: pointer;
-      opacity: 1;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 40px;
-      font-size: 13px;
-      opacity: 0.6;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subcontractor Safety Acknowledgement</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body>
+<body class="dark">
   <div class="container">
+    <!-- LOGO -->
+    <div class="logo">
+      <img src="assets/logo.png" alt="Company Logo" />
+    </div>
 
-    <h1>Subcontractor Safety Orientation</h1>
-    <p class="subtitle">
-      Please watch the full safety orientation video before completing the form.
-    </p>
+    <h1>Safety Orientation Acknowledgement</h1>
 
     <!-- VIDEO -->
-    <div class="video-container">
-      <video
-        id="safetyVideo"
-        controls
-        preload="metadata"
-        controlsList="nodownload"
-        style="width:100%; border-radius:8px;"
-      >
-        <source
-          src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
-          type="video/mp4"
-        />
-        Your browser does not support the video tag.
-      </video>
-    </div>
+    <section class="section">
+      <h2>Required Safety Video</h2>
+      <div class="video-wrapper">
+        <iframe
+          id="trainingVideo"
+          src="https://www.youtube.com/embed/YSVeHAzz1oA?enablejsapi=1&rel=0&origin=https://wonderful-flower-0f616df10.1.azurestaticapps.net"
+          title="Safety Training"
+          allow="autoplay; encrypted-media"
+          allowfullscreen>
+        </iframe>
+      </div>
+      <div class="note">
+        You must watch the entire video before submitting this form.
+      </div>
+    </section>
 
     <!-- FORM -->
     <form id="ackForm">
+      <section class="section">
+        <label for="fullName">Full Name</label>
+        <input id="fullName" type="text" required />
 
-      <label>Full Name</label>
-      <input required id="fullName" />
+        <label for="companyName">Company Name</label>
+        <input id="companyName" type="text" required />
 
-      <label>Company Name</label>
-      <input required id="companyName" />
+        <label for="jobSite">Job Site</label>
+        <select id="jobSite" required>
+          <option value="">Select a job site</option>
+          <option value="25-129 PHC Cardiac Rehab">25-129 PHC Cardiac Rehab</option>
+          <option value="25-103 Ajax Memphis">25-103 Ajax Memphis</option>
+          <option value="25-120 Blue Cloud Pittsburg">25-120 Blue Cloud Pittsburg</option>
+          <option value="24-116 BS-MOB 2 / Addition">24-116 BS-MOB 2 / Addition</option>
+          <option value="25-131 Eagle Point Expansion">25-131 Eagle Point Expansion</option>
+          <option value="25-116 Harcros Chemical">25-116 Harcros Chemical</option>
+          <option value="25-127 Alton Memorial SLCH Therapy">25-127 Alton Memorial SLCH Therapy</option>
+          <option value="25-126 Blue Cloud Toledo">25-126 Blue Cloud Toledo</option>
+          <option value="25-114 Mapletree Corp">25-114 Mapletree Corp</option>
+          <option value="364 Logistics Center">364 Logistics Center</option>
+          <option value="25-132 Blue Cloud Charlotte">25-132 Blue Cloud Charlotte</option>
+          <option value="25-134 Blue Cloud Reno">25-134 Blue Cloud Reno</option>
+          <option value="25-105 MBMC Switchgear">25-105 MBMC Switchgear</option>
+          <option value="25-111 PHC Power Plant">25-111 PHC Power Plant</option>
+          <option value="23-159 BJH CPAP Renovation/ Change Order">23-159 BJH CPAP Renovation/ Change Order</option>
+          <option value="25-130 Kuna Freezer Expansion">25-130 Kuna Freezer Expansion</option>
+          <option value="25-121 ABC Supply">25-121 ABC Supply</option>
+          <option value="RMMC CO">RMMC CO</option>
+          <option value="Fondren Surgical Suites">Fondren Surgical Suites</option>
+        </select>
 
-      <label>Job Site</label>
-      <select required id="jobSite">
-        <option value="">Select site</option>
-        <option>Site A</option>
-        <option>Site B</option>
-        <option>Site C</option>
-      </select>
+        <label for="superintendent">Superintendent</label>
+        <input
+          id="superintendent"
+          type="text"
+          placeholder="Auto-filled based on job site"
+          readonly
+        />
 
-      <label>Phone</label>
-      <input required id="phone" />
+        <label for="phone">Phone</label>
+        <input id="phone" type="tel" />
 
-      <label>Email</label>
-      <input type="email" required id="email" />
+        <label for="email">Email</label>
+        <input id="email" type="email" />
+      </section>
 
-      <label>Signature</label>
-      <canvas id="signature"></canvas>
+      <!-- SIGNATURE -->
+      <section class="section">
+        <h2>Signature</h2>
+        <canvas id="signaturePad"></canvas>
+        <div class="signature-actions">
+          <button type="button" id="clearSignature">Clear Signature</button>
+        </div>
+      </section>
 
-      <div class="signature-actions">
-        <button type="button" onclick="clearSignature()" style="margin-top:8px;">
-          Clear Signature
-        </button>
-      </div>
-
-      <button id="submitBtn" disabled>
-        Submit Acknowledgment
+      <button type="submit" id="submitBtn" disabled>
+        Submit Acknowledgement
       </button>
     </form>
 
+    <div id="status"></div>
+
     <footer>
-      © 2026 Kadean Construction Company
+      By submitting this form, you confirm completion of the required safety training.
     </footer>
   </div>
 
-  <!-- SCRIPT -->
-  <script>
-    /* =====================
-       VIDEO WATCH TRACKING
-    ====================== */
-    const video = document.getElementById("safetyVideo");
-    const submitBtn = document.getElementById("submitBtn");
-    let watchedEnough = false;
-
-    video.addEventListener("timeupdate", () => {
-      if (video.duration && video.currentTime / video.duration > 0.95) {
-        watchedEnough = true;
-        submitBtn.disabled = false;
-        submitBtn.classList.add("enabled");
-      }
-    });
-
-    /* =====================
-       SIGNATURE PAD
-    ====================== */
-    const canvas = document.getElementById("signature");
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
-
-    function resizeCanvas() {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    }
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    canvas.addEventListener("mousedown", e => {
-      drawing = true;
-      ctx.beginPath();
-      ctx.moveTo(e.offsetX, e.offsetY);
-    });
-
-    canvas.addEventListener("mousemove", e => {
-      if (!drawing) return;
-      ctx.lineTo(e.offsetX, e.offsetY);
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    });
-
-    canvas.addEventListener("mouseup", () => drawing = false);
-    canvas.addEventListener("mouseleave", () => drawing = false);
-
-    function clearSignature() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    /* =====================
-       SUBMIT HANDLER
-    ====================== */
-    document.getElementById("ackForm").addEventListener("submit", async e => {
-      e.preventDefault();
-
-      if (!watchedEnough) {
-        alert("Please watch the full video before submitting.");
-        return;
-      }
-
-      const payload = {
-        fullName: fullName.value,
-        companyName: companyName.value,
-        jobSite: jobSite.value,
-        phone: phone.value,
-        email: email.value,
-        signature: canvas.toDataURL("image/png"),
-        watchedAt: new Date().toISOString()
-      };
-
-      const res = await fetch("/api/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": "kadean-intake-2026-secure-9f3a2c"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        alert("Acknowledgment submitted successfully.");
-        location.reload();
-      } else {
-        alert("Submission failed. Please try again.");
-      }
-    });
-
-    /* Disable right-click (light deterrent) */
-    document.addEventListener("contextmenu", e => e.preventDefault());
-  </script>
+  <!-- YouTube API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+  
+  <!-- Unified script file -->
+  <script src="script.js"></script>
+  
+  <!-- App logic (separate from UI controls) -->
+  <script src="app.js"></script>
 </body>
 </html>
-
-

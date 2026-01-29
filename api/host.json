@@ -1,13 +1,15 @@
 {
   "version": "2.0",
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
   "extensions": {
     "http": {
       "routePrefix": "api",
       "cors": {
-        "origins": [ "https://<your-frontend-domain>" ],
-        "methods": [ "POST", "OPTIONS" ],
-        "allowedHeaders": [ "Content-Type", "Authorization" ],
-        "supportCredentials": false
+        "allowedOrigins": ["*"],  // For development
+        "allowCredentials": false
       }
     }
   }

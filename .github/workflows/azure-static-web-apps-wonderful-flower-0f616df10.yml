@@ -4,99 +4,39 @@ on:
   push:
     branches:
       - main
-      - master
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
-      - master
-
-# Environment variables available to all jobs and steps
-env:
-  NODE_VERSION: '18.x'
-  AZURE_FUNCTIONS_VERSION: '4'
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
     runs-on: ubuntu-latest
-    name: Build and Deploy to Azure
-    environment:
-      name: 'Production'
-      
+    name: Build and Deploy Job
     steps:
-      # 1. Checkout the repository
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          fetch-depth: 0
-          
-      # 2. Setup Node.js for Azure Functions
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: api/package-lock.json
-          
-      # 3. Install Azure Functions dependencies
-      - name: Install API Dependencies
-        run: |
-          cd api
-          npm ci --only=production
-        working-directory: ./
-        
-      # 4. Deploy to Azure Static Web Apps
+      - uses: actions/checkout@v3
+
       - name: Build and Deploy
-        id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          # 🔐 Connection to Azure
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          
-          # 🔧 Build Configuration
-          app_location: "src"                    # Frontend source code location
-          api_location: "api"                    # Azure Functions location
-          output_location: "."                   # Built output location
-          app_build_command: ""                  # No frontend build needed (static HTML)
-          api_build_command: "cd api && npm install"  # Install Functions dependencies
-          
-          # 📁 Custom configuration
-          skip_app_build: false
-          skip_api_build: false
-          verbose: true
-          is_static_export: false
-          
-          # 🎯 Deployment settings
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for PR comments
           action: "upload"
-          ###### Configuration for using an Azure Functions built by the workflow ######
-          api_build_output_path: "api"  # Path to built Azure Functions
-          
-      # 5. (Optional) Upload build artifacts for debugging
-      - name: Upload Deployment Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-artifacts
-          path: |
-            src/
-            api/
-          retention-days: 7
-          
-      # 6. (Optional) Send notification on success
-      - name: Deployment Success Notification
-        if: success()
-        run: echo "✅ Successfully deployed to Azure Static Web Apps"
-        
+
+          # 🔹 FRONTEND
+          app_location: "src"
+          output_location: ""   # IMPORTANT: empty for vanilla JS apps
+
+          # 🔹 BACKEND (Azure Functions)
+          api_location: "api"
+
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    name: Close Pull Request Cleanup
+    name: Close Pull Request Job
     steps:
       - name: Close Pull Request
-        id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}

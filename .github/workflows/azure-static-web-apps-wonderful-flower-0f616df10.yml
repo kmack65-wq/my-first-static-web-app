@@ -1,48 +1,99 @@
-name: Azure Static Web Apps
+name: Azure Static Web Apps CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - master
   pull_request:
     types: [opened, synchronize, reopened, closed]
-    branches: [ main ]
+    branches:
+      - main
+      - master
+
+# Environment variables available to all jobs and steps
+env:
+  NODE_VERSION: '18.x'
+  AZURE_FUNCTIONS_VERSION: '4'
 
 jobs:
-  build_and_deploy:
+  build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    name: Build and Deploy
+    name: Build and Deploy to Azure
+    environment:
+      name: 'Production'
+      
     steps:
-      - uses: actions/checkout@v3
+      # 1. Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+          
+      # 2. Setup Node.js for Azure Functions
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+          
+      # 3. Install Azure Functions dependencies
+      - name: Install API Dependencies
+        run: |
+          cd api
+          npm ci --only=production
+        working-directory: ./
         
-      - name: Build And Deploy
+      # 4. Deploy to Azure Static Web Apps
+      - name: Build and Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
+          # 🔐 Connection to Azure
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          
+          # 🔧 Build Configuration
+          app_location: "src"                    # Frontend source code location
+          api_location: "api"                    # Azure Functions location
+          output_location: "."                   # Built output location
+          app_build_command: ""                  # No frontend build needed (static HTML)
+          api_build_command: "cd api && npm install"  # Install Functions dependencies
+          
+          # 📁 Custom configuration
+          skip_app_build: false
+          skip_api_build: false
+          verbose: true
+          is_static_export: false
+          
+          # 🎯 Deployment settings
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
+          ###### Configuration for using an Azure Functions built by the workflow ######
+          api_build_output_path: "api"  # Path to built Azure Functions
           
-          # ⬇️ HERE'S WHERE YOU ADD YOUR CONFIGURATION ⬇️
-          app_location: "src"          # Location of your frontend code
-          api_location: "api"          # Location of your Azure Functions
-          output_location: "."         # Built app location (if any)
-          app_build_command: "echo 'No frontend build required'"
-          api_build_command: "cd api && npm install"
-          
-          # Routes configuration
-          routes_location: "routes.json"  # Optional: if you have custom routes
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+      # 5. (Optional) Upload build artifacts for debugging
+      - name: Upload Deployment Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: deployment-artifacts
-          path: ./
-
-  close_pull_request:
+          path: |
+            src/
+            api/
+          retention-days: 7
+          
+      # 6. (Optional) Send notification on success
+      - name: Deployment Success Notification
+        if: success()
+        run: echo "✅ Successfully deployed to Azure Static Web Apps"
+        
+  close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
-    name: Close Pull Request
+    name: Close Pull Request Cleanup
     steps:
       - name: Close Pull Request
         id: closepullrequest

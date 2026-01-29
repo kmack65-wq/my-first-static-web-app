@@ -1,151 +1,140 @@
 console.log("script.js loaded");
 
+/* ===== GLOBAL STATE ===== */
 const state = {
   videoCompleted: false,
   signatureCompleted: false,
   player: null
 };
 
+/* ===== HELPERS ===== */
 function $(id) {
   return document.getElementById(id);
 }
 
-function setStatus(message) {
-  const el = $("status");
-  if (el) el.textContent = message;
+function setStatus(msg) {
+  $("status").textContent = msg;
 }
 
 function updateSubmitState() {
   const btn = $("submitBtn");
-  if (!btn) return;
-
   btn.disabled = !(state.videoCompleted && state.signatureCompleted);
 
   if (!state.videoCompleted) {
-    setStatus("Please watch the entire safety video.");
+    setStatus("Please watch the entire video.");
   } else if (!state.signatureCompleted) {
-    setStatus("Please sign before submitting.");
+    setStatus("Please provide your signature.");
   } else {
     setStatus("Ready to submit.");
   }
-
-  console.log("Submit state:", {
-    videoCompleted: state.videoCompleted,
-    signatureCompleted: state.signatureCompleted,
-    disabled: btn.disabled
-  });
 }
 
-/* ================= SIGNATURE PAD ================= */
+/* ===== SIGNATURE PAD ===== */
 function initSignaturePad() {
   const canvas = $("signaturePad");
   const clearBtn = $("clearSignature");
-  if (!canvas) {
-    console.warn("Signature canvas not found");
-    return;
-  }
-
   const ctx = canvas.getContext("2d");
+
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
 
   let drawing = false;
 
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches?.[0];
-    const x = (touch ? touch.clientX : e.clientX) - rect.left;
-    const y = (touch ? touch.clientY : e.clientY) - rect.top;
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
     return { x, y };
   }
 
-  function start(e) {
+  canvas.addEventListener("mousedown", e => {
     drawing = true;
-    const { x, y } = getPos(e);
+    const p = pos(e);
     ctx.beginPath();
-    ctx.moveTo(x, y);
-    e.preventDefault();
-  }
+    ctx.moveTo(p.x, p.y);
+  });
 
-  function move(e) {
+  canvas.addEventListener("mousemove", e => {
     if (!drawing) return;
-    const { x, y } = getPos(e);
-    ctx.lineTo(x, y);
+    const p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    state.signatureCompleted = true;
+    updateSubmitState();
+  });
+
+  window.addEventListener("mouseup", () => drawing = false);
+
+  canvas.addEventListener("touchstart", e => {
+    drawing = true;
+    const p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", e => {
+    if (!drawing) return;
+    const p = pos(e);
+    ctx.lineTo(p.x, p.y);
     ctx.stroke();
     state.signatureCompleted = true;
     updateSubmitState();
     e.preventDefault();
-  }
+  }, { passive: false });
 
-  function stop() {
-    drawing = false;
-  }
+  canvas.addEventListener("touchend", () => drawing = false);
 
-  canvas.addEventListener("mousedown", start);
-  canvas.addEventListener("mousemove", move);
-  window.addEventListener("mouseup", stop);
-
-  canvas.addEventListener("touchstart", start, { passive: false });
-  canvas.addEventListener("touchmove", move, { passive: false });
-  canvas.addEventListener("touchend", stop);
-
-  clearBtn?.addEventListener("click", () => {
+  clearBtn.addEventListener("click", () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     state.signatureCompleted = false;
     updateSubmitState();
   });
-
-  console.log("Signature pad initialized");
 }
 
-/* ================= YOUTUBE PLAYER ================= */
+/* ===== YOUTUBE VIDEO ===== */
 window.onYouTubeIframeAPIReady = function () {
   console.log("YouTube API ready");
 
   state.player = new YT.Player("trainingVideo", {
+    videoId: "YSVeHAzz1oA",
+    playerVars: {
+      autoplay: 0,
+      controls: 1,
+      rel: 0,
+      modestbranding: 1,
+      origin: window.location.origin
+    },
     events: {
       onReady: () => {
         console.log("YouTube player ready");
         updateSubmitState();
       },
-      onStateChange: (event) => {
-        if (event.data === YT.PlayerState.ENDED) {
+      onStateChange: e => {
+        if (e.data === YT.PlayerState.ENDED) {
           console.log("Video completed");
           state.videoCompleted = true;
           updateSubmitState();
         }
       },
-      onError: (e) => {
-        console.error("YouTube error:", e);
+      onError: e => {
+        console.error("YouTube error", e.data);
         setStatus("Video failed to load. Please refresh.");
       }
     }
   });
 };
 
-/* ================= FORM GUARD ================= */
-function initFormGuard() {
-  const form = $("ackForm");
-  if (!form) return;
+/* ===== FORM GUARD ===== */
+$("ackForm").addEventListener("submit", e => {
+  if (!state.videoCompleted || !state.signatureCompleted) {
+    e.preventDefault();
+    alert("Please complete the video and signature.");
+  }
+});
 
-  form.addEventListener("submit", (e) => {
-    if (!state.videoCompleted) {
-      e.preventDefault();
-      alert("Please watch the entire safety video.");
-      return;
-    }
-    if (!state.signatureCompleted) {
-      e.preventDefault();
-      alert("Please sign before submitting.");
-      return;
-    }
-    console.log("Form passed guard");
-  });
-}
-
-/* ================= INIT ================= */
+/* ===== INIT ===== */
 document.addEventListener("DOMContentLoaded", () => {
   initSignaturePad();
-  initFormGuard();
   updateSubmitState();
 });

@@ -1,13 +1,22 @@
 {
-  "name": "api",
+  "name": "safety-acknowledgement-api",
   "version": "1.0.0",
+  "description": "Azure Functions for Safety Acknowledgement App",
   "scripts": {
     "start": "func start",
-    "build": "npm install"
+    "test": "echo \"No tests specified\" && exit 0",
+    "build": "echo \"No build required for Node.js Functions\"",
+    "lint": "echo \"No linter configured\""
   },
   "dependencies": {
     "axios": "^1.6.0",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^2.7.0",
     "pdfkit": "^0.14.0"
+  },
+  "devDependencies": {
+    "@azure/functions": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

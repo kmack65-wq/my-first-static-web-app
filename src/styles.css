@@ -134,3 +134,15 @@ button {
   color: #fff;
 }
 
+.video-card video {
+  width: 100%;
+  border-radius: 12px;
+  background: #000;
+}
+
+.watch-notice {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #9fb4d9;
+}
+

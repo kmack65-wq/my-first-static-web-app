@@ -1,6 +1,5 @@
 let videoCompleted = false;
 let signatureCompleted = false;
-let player;
 
 const $ = id => document.getElementById(id);
 
@@ -35,7 +34,9 @@ function setStatus(msg) {
     updateSubmitState();
   });
 
-  window.addEventListener("mouseup", () => drawing = false);
+  window.addEventListener("mouseup", () => {
+    drawing = false;
+  });
 
   $("clearSignature").onclick = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -44,17 +45,43 @@ function setStatus(msg) {
   };
 })();
 
-/* ---------- YOUTUBE ---------- */
-window.onYouTubeIframeAPIReady = () => {
-  player = new YT.Player("trainingVideo", {
-    events: {
-      onStateChange: e => {
-        if (e.data === YT.PlayerState.ENDED) {
-          videoCompleted = true;
-          setStatus("Video completed.");
-          updateSubmitState();
-        }
-      }
+/* ---------- SAFETY VIDEO (AZURE BLOB) ---------- */
+(() => {
+  const video = $("safetyVideo");
+
+  if (!video) {
+    console.error("Safety video element not found.");
+    return;
+  }
+
+  // Initial state
+  videoCompleted = false;
+  updateSubmitState();
+  setStatus("You must watch the entire safety video.");
+
+  // Prevent skipping ahead
+  let lastAllowedTime = 0;
+
+  video.addEventListener("timeupdate", () => {
+    if (video.currentTime > lastAllowedTime + 1) {
+      video.currentTime = lastAllowedTime;
+    } else {
+      lastAllowedTime = video.currentTime;
     }
   });
-};
+
+  // Mark completion
+  video.addEventListener("ended", () => {
+    videoCompleted = true;
+    setStatus("Video completed.");
+    updateSubmitState();
+  });
+
+  // Extra guard (in case user tries to submit early)
+  $("ackForm").addEventListener("submit", e => {
+    if (!videoCompleted) {
+      e.preventDefault();
+      alert("You must watch the entire safety video before submitting.");
+    }
+  });
+})();

@@ -11,32 +11,73 @@ function setStatus(msg) {
   $("status").textContent = msg;
 }
 
-/* ---------- SIGNATURE ---------- */
+/* ---------- SIGNATURE (MOUSE + TOUCH) ---------- */
 (() => {
   const canvas = $("signaturePad");
   const ctx = canvas.getContext("2d");
   let drawing = false;
 
+  // Improve resolution on mobile
+  function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    ctx.scale(ratio, ratio);
+  }
+
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
+
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
 
-  canvas.addEventListener("mousedown", e => {
-    drawing = true;
-    ctx.beginPath();
-    ctx.moveTo(e.offsetX, e.offsetY);
-  });
+  function getPosition(e) {
+    const rect = canvas.getBoundingClientRect();
 
-  canvas.addEventListener("mousemove", e => {
+    if (e.touches) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+
+    return {
+      x: e.offsetX,
+      y: e.offsetY
+    };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    const pos = getPosition(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e) {
     if (!drawing) return;
-    ctx.lineTo(e.offsetX, e.offsetY);
+    e.preventDefault();
+    const pos = getPosition(e);
+    ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     signatureCompleted = true;
     updateSubmitState();
-  });
+  }
 
-  window.addEventListener("mouseup", () => {
+  function endDraw() {
     drawing = false;
-  });
+  }
+
+  // Mouse events
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", draw);
+  window.addEventListener("mouseup", endDraw);
+
+  // Touch events
+  canvas.addEventListener("touchstart", startDraw, { passive: false });
+  canvas.addEventListener("touchmove", draw, { passive: false });
+  window.addEventListener("touchend", endDraw);
 
   $("clearSignature").onclick = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -44,6 +85,7 @@ function setStatus(msg) {
     updateSubmitState();
   };
 })();
+
 
 /* ---------- SAFETY VIDEO (AZURE BLOB) ---------- */
 (() => {
@@ -85,3 +127,4 @@ function setStatus(msg) {
     }
   });
 })();
+

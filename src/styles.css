@@ -147,6 +147,9 @@ button {
 }
 
 #signaturePad {
+  background-color: #0a2540; /* dark background */
   touch-action: none;
+  border-radius: 8px;
 }
+
 

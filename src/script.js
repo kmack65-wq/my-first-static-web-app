@@ -30,6 +30,8 @@ function setStatus(msg) {
 
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
+  ctx.strokeStyle = "#ffffff"; // White pen
+
 
   function getPosition(e) {
     const rect = canvas.getBoundingClientRect();
@@ -127,4 +129,5 @@ function setStatus(msg) {
     }
   });
 })();
+
 

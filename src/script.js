@@ -1,48 +1,52 @@
 /*********************************
  * GLOBAL STATE
  *********************************/
-const safetyState = {
+window.safetyState = {
   videoCompleted: false,
   signatureCompleted: false
 };
 
-window.safetyState = safetyState;
-
 /*********************************
  * HELPERS
  *********************************/
-const $ = id => document.getElementById(id);
+function $(id) {
+  return document.getElementById(id);
+}
 
-function setStatus(msg, type = "info") {
-  const el = document.getElementById("status");
-
-  if (!el) {
-    console.warn("Status element not found yet.");
-    return;
-  }
+window.setStatus = function (msg, type = "info") {
+  const el = $("status");
+  if (!el) return;
 
   el.textContent = msg;
   el.className = `status ${type}`;
-}
+};
 
-window.updateSubmitState = updateSubmitState;
+window.updateSubmitState = function () {
+  const btn = $("submitBtn");
+  if (!btn) return;
+
+  btn.disabled = !(
+    window.safetyState.videoCompleted &&
+    window.safetyState.signatureCompleted
+  );
+};
 
 /*********************************
- * VIDEO GATING (HTML5)
+ * VIDEO GATE (HTML5)
  *********************************/
 function initVideoGate() {
   const video = $("trainingVideo");
   if (!video) return;
 
   video.addEventListener("ended", () => {
-    safetyState.videoCompleted = true;
+    window.safetyState.videoCompleted = true;
     setStatus("Video completed. Please sign below.", "success");
     updateSubmitState();
   });
 }
 
 /*********************************
- * SIGNATURE PAD (WHITE + MOBILE)
+ * SIGNATURE PAD (WHITE PEN + MOBILE SAFE)
  *********************************/
 function initSignaturePad() {
   const canvas = $("signaturePad");
@@ -57,7 +61,7 @@ function initSignaturePad() {
     const rect = canvas.getBoundingClientRect();
 
     canvas.width = rect.width * ratio;
-    canvas.height = 150 * ratio;
+    canvas.height = 160 * ratio;
 
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.lineWidth = 2.5;
@@ -68,46 +72,66 @@ function initSignaturePad() {
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
 
-  const getPoint = e => {
-    const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  };
+  function getPoint(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
 
-  const start = e => {
+  function start(e) {
     drawing = true;
     ctx.beginPath();
     const p = getPoint(e);
     ctx.moveTo(p.x, p.y);
     e.preventDefault();
-  };
+  }
 
-  const move = e => {
+  function move(e) {
     if (!drawing) return;
     const p = getPoint(e);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
 
-    safetyState.signatureCompleted = true;
+    window.safetyState.signatureCompleted = true;
     updateSubmitState();
-  };
+  }
 
-  const stop = () => (drawing = false);
+  function stop() {
+    drawing = false;
+  }
 
+  // Mouse
   canvas.addEventListener("mousedown", start);
   canvas.addEventListener("mousemove", move);
   canvas.addEventListener("mouseup", stop);
   canvas.addEventListener("mouseleave", stop);
 
-  canvas.addEventListener("touchstart", e => start(e.touches[0]), { passive: false });
-  canvas.addEventListener("touchmove", e => move(e.touches[0]), { passive: false });
+  // Touch
+  canvas.addEventListener(
+    "touchstart",
+    e => start(e.touches[0]),
+    { passive: false }
+  );
+
+  canvas.addEventListener(
+    "touchmove",
+    e => move(e.touches[0]),
+    { passive: false }
+  );
+
   canvas.addEventListener("touchend", stop);
 
-  clearBtn.addEventListener("click", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    safetyState.signatureCompleted = false;
-    updateSubmitState();
-    setStatus("Signature cleared. Please sign again.", "info");
-  });
+  // Clear button
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      window.safetyState.signatureCompleted = false;
+      updateSubmitState();
+      setStatus("Signature cleared. Please sign again.", "info");
+    });
+  }
 }
 
 /*********************************
@@ -118,9 +142,16 @@ function initFormGuard() {
   if (!form) return;
 
   form.addEventListener("submit", e => {
-    if (!safetyState.videoCompleted || !safetyState.signatureCompleted) {
+    if (
+      !window.safetyState.videoCompleted ||
+      !window.safetyState.signatureCompleted
+    ) {
       e.preventDefault();
+      setStatus("Please complete the video and signature.", "error");
+      return;
     }
+
+    setStatus("Submitting acknowledgement…", "info");
   });
 }
 
@@ -132,5 +163,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initSignaturePad();
   initFormGuard();
   updateSubmitState();
-  setStatus("Please watch the video to begin.", "info");
+  setStatus("Please watch the safety video to begin.", "info");
 });

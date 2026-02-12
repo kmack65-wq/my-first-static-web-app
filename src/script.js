@@ -13,15 +13,18 @@ function $(id) {
   return document.getElementById(id);
 }
 
-window.setStatus = function (msg, type = "info") {
+function setStatus(msg, type = "info") {
   const el = $("status");
   if (!el) return;
 
   el.textContent = msg;
-  el.className = `status ${type}`;
-};
+  el.className = `status status-${type}`;
+}
 
-window.updateSubmitState = function () {
+/*********************************
+ * SUBMIT BUTTON STATE
+ *********************************/
+function updateSubmitState() {
   const btn = $("submitBtn");
   if (!btn) return;
 
@@ -29,10 +32,13 @@ window.updateSubmitState = function () {
     window.safetyState.videoCompleted &&
     window.safetyState.signatureCompleted
   );
-};
+}
+
+// 🔑 expose globally
+window.updateSubmitState = updateSubmitState;
 
 /*********************************
- * VIDEO GATE (HTML5)
+ * VIDEO COMPLETION (HTML5)
  *********************************/
 function initVideoGate() {
   const video = $("trainingVideo");
@@ -46,7 +52,7 @@ function initVideoGate() {
 }
 
 /*********************************
- * SIGNATURE PAD (WHITE PEN + MOBILE SAFE)
+ * SIGNATURE PAD (WHITE PEN + MOBILE)
  *********************************/
 function initSignaturePad() {
   const canvas = $("signaturePad");
@@ -61,12 +67,12 @@ function initSignaturePad() {
     const rect = canvas.getBoundingClientRect();
 
     canvas.width = rect.width * ratio;
-    canvas.height = 160 * ratio;
+    canvas.height = 150 * ratio;
 
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#ffffff";
+    ctx.strokeStyle = "#ffffff"; // WHITE PEN
   }
 
   resizeCanvas();
@@ -109,33 +115,21 @@ function initSignaturePad() {
   canvas.addEventListener("mouseleave", stop);
 
   // Touch
-  canvas.addEventListener(
-    "touchstart",
-    e => start(e.touches[0]),
-    { passive: false }
-  );
-
-  canvas.addEventListener(
-    "touchmove",
-    e => move(e.touches[0]),
-    { passive: false }
-  );
-
+  canvas.addEventListener("touchstart", e => start(e.touches[0]), { passive: false });
+  canvas.addEventListener("touchmove", e => move(e.touches[0]), { passive: false });
   canvas.addEventListener("touchend", stop);
 
-  // Clear button
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      window.safetyState.signatureCompleted = false;
-      updateSubmitState();
-      setStatus("Signature cleared. Please sign again.", "info");
-    });
-  }
+  // Clear
+  clearBtn.addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    window.safetyState.signatureCompleted = false;
+    updateSubmitState();
+    setStatus("Signature cleared. Please sign again.", "info");
+  });
 }
 
 /*********************************
- * FORM GUARD
+ * FORM GUARD (UI ONLY)
  *********************************/
 function initFormGuard() {
   const form = $("ackForm");
@@ -148,10 +142,7 @@ function initFormGuard() {
     ) {
       e.preventDefault();
       setStatus("Please complete the video and signature.", "error");
-      return;
     }
-
-    setStatus("Submitting acknowledgement…", "info");
   });
 }
 
@@ -163,5 +154,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initSignaturePad();
   initFormGuard();
   updateSubmitState();
-  setStatus("Please watch the safety video to begin.", "info");
+  setStatus("Please watch the video to begin.", "info");
 });

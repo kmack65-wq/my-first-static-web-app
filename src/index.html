@@ -2,83 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Safety Orientation Acknowledgement</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body>
-  <div class="page-bg">
-    <div class="app-card">
+<body class="dark">
+  <div class="container">
 
-      <!-- HEADER -->
-      <div class="header">
-        <img src="assets/logo.png" alt="Kadean Construction" class="logo" />
-        <h1>Safety Orientation Acknowledgement</h1>
-        <h2>Required Safety Video</h2>
+    <!-- LOGO -->
+    <div class="logo">
+      <img src="assets/logo.png" alt="Kadean Construction Logo" />
+    </div>
+
+    <h1>Safety Orientation Acknowledgement</h1>
+
+    <!-- VIDEO -->
+    <section class="section">
+      <h2>Required Safety Video</h2>
+
+      <div class="video-wrapper">
+        <video
+          id="trainingVideo"
+          width="100%"
+          controls
+          controlsList="nodownload"
+        >
+          <source
+            src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
+            type="video/mp4"
+          />
+          Your browser does not support the video tag.
+        </video>
       </div>
 
-      <!-- VIDEO CARD -->
-   <div class="video-card">
-  <video
-    id="safetyVideo"
-    controls
-    playsinline
-    preload="metadata">
-    
-    <source
-      src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
-      type="video/mp4"
-    />
-    Your browser does not support the video tag.
-  </video>
+      <div class="note">
+        You must watch the entire video before submitting this form.
+      </div>
+    </section>
 
-  <div id="watchNotice" class="watch-notice">
-    You must watch the entire video before submitting this form.
-  </div>
-</div>
-
-      <!-- FORM -->
-      <form id="ackForm" class="form">
-
-        <label>Full Name</label>
+    <!-- FORM -->
+    <form id="ackForm">
+      <section class="section">
+        <label for="fullName">Full Name</label>
         <input id="fullName" required />
 
-        <label>Company Name</label>
+        <label for="companyName">Company Name</label>
         <input id="companyName" required />
 
-        <label>Job Site</label>
-        <select id="jobSite">
+        <label for="jobSite">Job Site</label>
+        <select id="jobSite" required>
           <option value="">Select a job site</option>
-          <option>25-129 PHC Cardiac Rehab</option>
-          <option>364 Logistics Center</option>
-          <option>Fondren Surgical Suites</option>
         </select>
 
-        <label>Phone</label>
+        <label for="phone">Phone</label>
         <input id="phone" />
 
-        <label>Email</label>
+        <label for="email">Email</label>
         <input id="email" type="email" />
+      </section>
 
-        <label>Signature</label>
+      <!-- SIGNATURE -->
+      <section class="section">
+        <h2>Signature</h2>
         <canvas id="signaturePad"></canvas>
-        <button type="button" id="clearSignature" class="secondary">
-          Clear Signature
-        </button>
 
-        <button id="submitBtn" class="primary" disabled>
-          Submit Acknowledgement
-        </button>
-      </form>
+        <div class="signature-actions">
+          <button type="button" id="clearSignature">Clear Signature</button>
+        </div>
+      </section>
 
-    </div>
+      <button id="submitBtn" type="submit" disabled>
+        Submit Acknowledgement
+      </button>
+    </form>
+
+    <!-- STATUS -->
+    <div id="status" class="status info"></div>
+
+    <footer>
+      By submitting this form, you confirm completion of the required safety training.
+    </footer>
   </div>
 
+  <!-- Scripts -->
   <script src="script.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
-
-
-

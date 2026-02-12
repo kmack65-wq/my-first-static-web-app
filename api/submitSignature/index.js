@@ -1,39 +1,145 @@
 const fetch = require("node-fetch");
 
+/***************************************
+ * Get Microsoft Graph Access Token
+ ***************************************/
+async function getAccessToken() {
+  const tenantId = process.env.TENANT_ID;
+  const clientId = process.env.CLIENT_ID;
+  const clientSecret = process.env.CLIENT_SECRET;
+
+  if (!tenantId || !clientId || !clientSecret) {
+    throw new Error("Missing Graph configuration");
+  }
+
+  const tokenRes = await fetch(
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        scope: "https://graph.microsoft.com/.default",
+        grant_type: "client_credentials"
+      })
+    }
+  );
+
+  if (!tokenRes.ok) {
+    const err = await tokenRes.text();
+    throw new Error(`Token error: ${err}`);
+  }
+
+  const tokenData = await tokenRes.json();
+  return tokenData.access_token;
+}
+
+/***************************************
+ * Azure Function Entry
+ ***************************************/
 module.exports = async function (context, req) {
   try {
     const body = req.body;
 
-    const accessToken = process.env.GRAPH_TOKEN;
-    const siteId = process.env.SITE_ID;
-    const listId = process.env.LIST_ID;
+    const {
+      fullName,
+      companyName,
+      jobSite,
+      phone,
+      email,
+      superintendent,
+      signature
+    } = body;
 
-    if (!accessToken || !siteId || !listId) {
-      context.res = {
-        status: 500,
-        body: "Missing Graph configuration"
-      };
+    if (!fullName || !companyName || !signature) {
+      context.res = { status: 400, body: "Missing required fields" };
       return;
     }
 
-    /* ===============================
-       1️⃣ CREATE LIST ITEM
-       =============================== */
+    const hostname = process.env.SP_HOSTNAME;
+    const sitePath = process.env.SP_SITE_PATH;
+    const listName = process.env.SP_LIST_NAME;
+    const libraryName = process.env.SP_LIBRARY_NAME;
 
-    const payload = {
-      fields: {
-        Title: body.fullName,
-        Company_x0020_Name: body.companyName,
-        Job_x0020_Site: body.jobSite || null,
-        Phone: body.phone || null,
-        Email: body.email || null,
-        Superintendent: body.superintendent || null,
-        Submitted_x0020_At: new Date().toISOString(),
-        Acknowledged: true
+    if (!hostname || !sitePath || !listName || !libraryName) {
+      throw new Error("Missing SharePoint configuration");
+    }
+
+    const accessToken = await getAccessToken();
+
+    /***************************************
+     * Resolve Site ID
+     ***************************************/
+    const siteRes = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${hostname}:${sitePath}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` }
       }
-    };
+    );
 
-    const createResp = await fetch(
+    const siteData = await siteRes.json();
+    const siteId = siteData.id;
+
+    /***************************************
+     * Resolve List ID
+     ***************************************/
+    const listRes = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listName}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }
+    );
+
+    const listData = await listRes.json();
+    const listId = listData.id;
+
+    /***************************************
+     * Resolve Drive (Document Library)
+     ***************************************/
+    const drivesRes = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }
+    );
+
+    const drivesData = await drivesRes.json();
+    const drive = drivesData.value.find(d => d.name === libraryName);
+
+    if (!drive) {
+      throw new Error("Document library not found");
+    }
+
+    const driveId = drive.id;
+
+    /***************************************
+     * Upload Signature PNG
+     ***************************************/
+    const base64Data = signature.replace(/^data:image\/png;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+
+    const fileName = `${fullName.replace(/\s+/g, "_")}_${Date.now()}.png`;
+
+    const uploadRes = await fetch(
+      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${fileName}:/content`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "image/png"
+        },
+        body: buffer
+      }
+    );
+
+    const uploadData = await uploadRes.json();
+    const fileUrl = uploadData.webUrl;
+
+    /***************************************
+     * Create SharePoint List Item
+     ***************************************/
+    const listItemRes = await fetch(
       `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items`,
       {
         method: "POST",
@@ -41,114 +147,41 @@ module.exports = async function (context, req) {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          fields: {
+            Title: fullName,
+            Company_x0020_Name: companyName,
+            Job_x0020_Site: jobSite,
+            Phone: phone,
+            Email: email,
+            Superintendent: superintendent,
+            Submitted_x0020_At: new Date().toISOString(),
+            Acknowledged: true,
+            Signature_x0020_File_x0020_URL: fileUrl
+          }
+        })
       }
     );
 
-    if (!createResp.ok) {
-      const errText = await createResp.text();
-      context.res = {
-        status: 500,
-        body: `SharePoint item creation failed: ${errText}`
-      };
-      return;
+    if (!listItemRes.ok) {
+      const err = await listItemRes.text();
+      throw new Error(`List item error: ${err}`);
     }
-
-    const itemJson = await createResp.json();
-    const itemId = itemJson.id;
-
-    /* ===============================
-       2️⃣ UPLOAD SIGNATURE PNG
-       =============================== */
-
-    let signatureUrl = null;
-
-    if (body.signatureImage) {
-      const base64Data = body.signatureImage.replace(
-        /^data:image\/png;base64,/,
-        ""
-      );
-      const buffer = Buffer.from(base64Data, "base64");
-
-      const safeName = body.fullName.replace(/[^a-z0-9]/gi, "_");
-      const fileName = `${safeName}_${Date.now()}.png`;
-
-      const uploadResp = await fetch(
-        `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/Signatures/${fileName}:/content`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "image/png"
-          },
-          body: buffer
-        }
-      );
-
-      if (!uploadResp.ok) {
-        const errText = await uploadResp.text();
-        context.res = {
-          status: 500,
-          body: `Signature upload failed: ${errText}`
-        };
-        return;
-      }
-
-      const uploadJson = await uploadResp.json();
-      signatureUrl = uploadJson.webUrl;
-    }
-
-    /* ===============================
-       3️⃣ PATCH LIST ITEM WITH URL
-       =============================== */
-
-    if (signatureUrl) {
-      const patchResp = await fetch(
-        `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items/${itemId}/fields`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            Signature_x0020_File_x0020_URL: {
-              Url: signatureUrl,
-              Description: "Signature image"
-            }
-          })
-        }
-      );
-
-      if (!patchResp.ok) {
-        const errText = await patchResp.text();
-        context.res = {
-          status: 500,
-          body: `Signature URL patch failed: ${errText}`
-        };
-        return;
-      }
-    }
-
-    /* ===============================
-       4️⃣ SUCCESS RESPONSE
-       =============================== */
 
     context.res = {
       status: 200,
-      headers: { "Content-Type": "application/json" },
       body: {
-        success: true,
-        itemId,
-        signatureUrl
+        message: "Success",
+        signatureUrl: fileUrl
       }
     };
 
   } catch (err) {
-    context.log.error("submitSignature error:", err);
+    console.error("submitSignature ERROR:", err.message);
+
     context.res = {
       status: 500,
-      body: "Unexpected server error"
+      body: err.message
     };
   }
 };

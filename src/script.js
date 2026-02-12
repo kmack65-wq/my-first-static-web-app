@@ -1,159 +1,136 @@
-let videoCompleted = false;
-let signatureCompleted = false;
+/*********************************
+ * GLOBAL STATE
+ *********************************/
+const safetyState = {
+  videoCompleted: false,
+  signatureCompleted: false
+};
 
+window.safetyState = safetyState;
+
+/*********************************
+ * HELPERS
+ *********************************/
 const $ = id => document.getElementById(id);
 
-function updateSubmitState() {
-  $("submitBtn").disabled = !(videoCompleted && signatureCompleted);
+function setStatus(msg, type = "info") {
+  const el = document.getElementById("status");
+
+  if (!el) {
+    console.warn("Status element not found yet.");
+    return;
+  }
+
+  el.textContent = msg;
+  el.className = `status ${type}`;
 }
 
-function setStatus(msg) {
-  $("status").textContent = msg;
+window.updateSubmitState = updateSubmitState;
+
+/*********************************
+ * VIDEO GATING (HTML5)
+ *********************************/
+function initVideoGate() {
+  const video = $("trainingVideo");
+  if (!video) return;
+
+  video.addEventListener("ended", () => {
+    safetyState.videoCompleted = true;
+    setStatus("Video completed. Please sign below.", "success");
+    updateSubmitState();
+  });
 }
 
-/* ---------- SIGNATURE (MOUSE + TOUCH, WHITE PEN, MOBILE SAFE) ---------- */
-(() => {
+/*********************************
+ * SIGNATURE PAD (WHITE + MOBILE)
+ *********************************/
+function initSignaturePad() {
   const canvas = $("signaturePad");
+  const clearBtn = $("clearSignature");
+  if (!canvas) return;
+
   const ctx = canvas.getContext("2d");
   let drawing = false;
 
-  const PEN_COLOR = "#ffffff"; // FORCE WHITE
-  const PEN_WIDTH = 2;
-
-  // ---------- Canvas setup ----------
-  function setupCanvas() {
+  function resizeCanvas() {
     const ratio = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
 
     canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
+    canvas.height = 150 * ratio;
 
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-    ctx.lineWidth = PEN_WIDTH;
+    ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
-    ctx.strokeStyle = PEN_COLOR; // ALWAYS reset pen color
+    ctx.strokeStyle = "#ffffff";
   }
 
-  setupCanvas();
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
 
-  // Re-apply on resize / orientation / focus changes
-  window.addEventListener("resize", setupCanvas);
-  window.addEventListener("orientationchange", setupCanvas);
-  window.addEventListener("focus", () => {
-    ctx.strokeStyle = PEN_COLOR;
-  });
+  const getPoint = e => {
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
 
-  // ---------- Position helper ----------
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-
-    if (e.touches && e.touches.length > 0) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
-      };
-    }
-
-    return {
-      x: e.offsetX,
-      y: e.offsetY
-    };
-  }
-
-  // ---------- Drawing handlers ----------
-  function startDraw(e) {
-    e.preventDefault();
+  const start = e => {
     drawing = true;
-
-    // Re-force pen color on every stroke (mobile fix)
-    ctx.strokeStyle = PEN_COLOR;
-
-    const pos = getPos(e);
     ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y);
-  }
-
-  function draw(e) {
-    if (!drawing) return;
+    const p = getPoint(e);
+    ctx.moveTo(p.x, p.y);
     e.preventDefault();
+  };
 
-    ctx.strokeStyle = PEN_COLOR; // EXTRA safety
-    const pos = getPos(e);
-    ctx.lineTo(pos.x, pos.y);
+  const move = e => {
+    if (!drawing) return;
+    const p = getPoint(e);
+    ctx.lineTo(p.x, p.y);
     ctx.stroke();
 
-    signatureCompleted = true;
+    safetyState.signatureCompleted = true;
     updateSubmitState();
-  }
-
-  function endDraw() {
-    drawing = false;
-  }
-
-  // ---------- Mouse events ----------
-  canvas.addEventListener("mousedown", startDraw);
-  canvas.addEventListener("mousemove", draw);
-  window.addEventListener("mouseup", endDraw);
-
-  // ---------- Touch events ----------
-  canvas.addEventListener("touchstart", startDraw, { passive: false });
-  canvas.addEventListener("touchmove", draw, { passive: false });
-  window.addEventListener("touchend", endDraw);
-
-  // ---------- Clear ----------
-  $("clearSignature").onclick = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    signatureCompleted = false;
-    updateSubmitState();
-
-    // Re-apply pen after clear
-    ctx.strokeStyle = PEN_COLOR;
   };
-})();
 
+  const stop = () => (drawing = false);
 
+  canvas.addEventListener("mousedown", start);
+  canvas.addEventListener("mousemove", move);
+  canvas.addEventListener("mouseup", stop);
+  canvas.addEventListener("mouseleave", stop);
 
-/* ---------- SAFETY VIDEO (AZURE BLOB) ---------- */
-(() => {
-  const video = $("safetyVideo");
+  canvas.addEventListener("touchstart", e => start(e.touches[0]), { passive: false });
+  canvas.addEventListener("touchmove", e => move(e.touches[0]), { passive: false });
+  canvas.addEventListener("touchend", stop);
 
-  if (!video) {
-    console.error("Safety video element not found.");
-    return;
-  }
-
-  // Initial state
-  videoCompleted = false;
-  updateSubmitState();
-  setStatus("You must watch the entire safety video.");
-
-  // Prevent skipping ahead
-  let lastAllowedTime = 0;
-
-  video.addEventListener("timeupdate", () => {
-    if (video.currentTime > lastAllowedTime + 1) {
-      video.currentTime = lastAllowedTime;
-    } else {
-      lastAllowedTime = video.currentTime;
-    }
-  });
-
-  // Mark completion
-  video.addEventListener("ended", () => {
-    videoCompleted = true;
-    setStatus("Video completed.");
+  clearBtn.addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    safetyState.signatureCompleted = false;
     updateSubmitState();
+    setStatus("Signature cleared. Please sign again.", "info");
   });
+}
 
-  // Extra guard (in case user tries to submit early)
-  $("ackForm").addEventListener("submit", e => {
-    if (!videoCompleted) {
+/*********************************
+ * FORM GUARD
+ *********************************/
+function initFormGuard() {
+  const form = $("ackForm");
+  if (!form) return;
+
+  form.addEventListener("submit", e => {
+    if (!safetyState.videoCompleted || !safetyState.signatureCompleted) {
       e.preventDefault();
-      alert("You must watch the entire safety video before submitting.");
     }
   });
-})();
+}
 
-
-
+/*********************************
+ * INIT
+ *********************************/
+document.addEventListener("DOMContentLoaded", () => {
+  initVideoGate();
+  initSignaturePad();
+  initFormGuard();
+  updateSubmitState();
+  setStatus("Please watch the video to begin.", "info");
+});

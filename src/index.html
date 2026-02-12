@@ -43,6 +43,7 @@
 
     <!-- FORM -->
     <form id="ackForm">
+
       <section class="section">
         <label for="fullName">Full Name</label>
         <input id="fullName" required />
@@ -51,7 +52,7 @@
         <input id="companyName" required />
 
         <label for="jobSite">Job Site</label>
-        <select id="jobSite" required>
+        <select id="jobSite">
           <option value="">Select a job site</option>
         </select>
 
@@ -68,7 +69,9 @@
         <canvas id="signaturePad"></canvas>
 
         <div class="signature-actions">
-          <button type="button" id="clearSignature">Clear Signature</button>
+          <button type="button" id="clearSignature">
+            Clear Signature
+          </button>
         </div>
       </section>
 
@@ -85,7 +88,7 @@
     </footer>
   </div>
 
-  <!-- Scripts -->
+  <!-- Script Order Matters -->
   <script src="script.js"></script>
   <script src="app.js"></script>
 </body>

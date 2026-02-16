@@ -216,7 +216,7 @@ module.exports = async function (context, req) {
     const CLIENT_SECRET = requireEnv("CLIENT_SECRET");
     const SP_HOSTNAME = requireEnv("SP_HOSTNAME");
     const SP_SITE_PATH = requireEnv("SP_SITE_PATH");
-    const SP_LIST_NAME = requireEnv("SP_LIST_NAME");
+    const SP_LIST_NAME = "Subcontractor Safety Acknowledgements";
     const SP_LIBRARY_NAME = requireEnv("SP_LIBRARY_NAME");
 
     // ---- Parse/validate input
@@ -376,4 +376,5 @@ module.exports = async function (context, req) {
     });
   }
 };  
+
 

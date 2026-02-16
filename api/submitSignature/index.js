@@ -1,106 +1,22 @@
 const fetch = require("node-fetch");
+const { getAccessToken } = require("../shared/auth");
 
 module.exports = async function (context, req) {
   try {
-    context.log("submitSignature function triggered");
-
-    // -------------------------
-    // 1️⃣ Validate environment
-    // -------------------------
-    const {
-      CLIENT_ID,
-      CLIENT_SECRET,
-      TENANT_ID,
-      SP_HOSTNAME,
-      SP_SITE_PATH,
-      SP_LIST_NAME
-    } = process.env;
-
-    if (!CLIENT_ID || !CLIENT_SECRET || !TENANT_ID) {
-      context.log.error("Missing Azure AD configuration");
-      context.res = { status: 500, body: "Missing Graph configuration" };
-      return;
-    }
-
-    if (!SP_HOSTNAME || !SP_SITE_PATH || !SP_LIST_NAME) {
-      context.log.error("Missing SharePoint configuration");
-      context.res = { status: 500, body: "Missing SharePoint configuration" };
-      return;
-    }
-
-    // -------------------------
-    // 2️⃣ Acquire Graph Token
-    // -------------------------
-    const tokenResponse = await fetch(
-      `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: CLIENT_ID,
-          scope: "https://graph.microsoft.com/.default",
-          client_secret: CLIENT_SECRET,
-          grant_type: "client_credentials"
-        })
-      }
-    );
-
-    const tokenData = await tokenResponse.json();
-
-    if (!tokenResponse.ok) {
-      context.log.error("Token acquisition failed", tokenData);
-      context.res = { status: 500, body: "Failed to acquire Graph token" };
-      return;
-    }
-
-    const accessToken = tokenData.access_token;
-
-    // -------------------------
-    // 3️⃣ Get Site ID
-    // -------------------------
-    const siteResponse = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${SP_HOSTNAME}:${SP_SITE_PATH}`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }
-    );
-
-    const siteData = await siteResponse.json();
-
-    if (!siteResponse.ok) {
-      context.log.error("Failed to get site", siteData);
-      context.res = { status: 500, body: "Failed to resolve SharePoint site" };
-      return;
-    }
-
-    const siteId = siteData.id;
-
-    // -------------------------
-    // 4️⃣ Get List ID
-    // -------------------------
-    const listsResponse = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }
-    );
-
-    const listsData = await listsResponse.json();
-
-    const list = listsData.value.find(l => l.displayName === SP_LIST_NAME);
-
-    if (!list) {
-      context.log.error("List not found");
-      context.res = { status: 500, body: "SharePoint list not found" };
-      return;
-    }
-
-    const listId = list.id;
-
-    // -------------------------
-    // 5️⃣ Create List Item
-    // -------------------------
     const body = req.body;
+
+    if (!body?.fullName || !body?.companyName || !body?.signatureUrl) {
+      context.res = {
+        status: 400,
+        body: "Missing required fields"
+      };
+      return;
+    }
+
+    const token = await getAccessToken();
+
+    const siteId = process.env.SP_SITE_ID;
+    const listId = process.env.SP_LIST_ID;
 
     const payload = {
       fields: {
@@ -111,37 +27,46 @@ module.exports = async function (context, req) {
         Email: body.email || null,
         Superintendent: body.superintendent || null,
         Submitted_x0020_At: new Date().toISOString(),
-        Acknowledged: true
+        Acknowledged: true,
+        Signature_x0020_File_x0020_URL: body.signatureUrl
       }
     };
 
-    const createResponse = await fetch(
+    const response = await fetch(
       `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
       }
     );
 
-    const createData = await createResponse.json();
+    const data = await response.json();
 
-    if (!createResponse.ok) {
-      context.log.error("List item creation failed", createData);
-      context.res = { status: 500, body: createData };
+    if (!response.ok) {
+      context.log.error("Graph error:", data);
+      context.res = {
+        status: 500,
+        body: data
+      };
       return;
     }
 
     context.res = {
       status: 200,
-      body: { message: "List item created successfully" }
+      body: {
+        message: "Signature submitted successfully",
+        itemId: data.id
+      }
     };
-
   } catch (err) {
-    context.log.error("Unhandled error", err);
-    context.res = { status: 500, body: err.message };
+    context.log.error("submitSignature failed", err);
+    context.res = {
+      status: 500,
+      body: err.message
+    };
   }
 };

@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ackForm");
   if (!form) return;
 
-  const allowedJobSites = [
+  const allowedJobSites = [ 
     "25-129 PHC Cardiac Rehab",
     "25-103 Ajax Memphis",
     "25-120 Blue Cloud Pittsburg",

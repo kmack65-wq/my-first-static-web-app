@@ -1,106 +1,114 @@
 // /api/subcontractorAck/index.js
 
-const fetch = require("node-fetch"); // node-fetch v2
-const fs = require("fs");
-const path = require("path");
-const { DefaultAzureCredential } = require("@azure/identity");
-const generateReceipt = require("../shared/generateReceipt");
+import fetch from "node-fetch";
+import fs from "fs";
+import { DefaultAzureCredential } from "@azure/identity";
+import generateReceipt from "../shared/generateReceipt.js";
 
-module.exports = async function (context, req) {
+export default async function (context, req) {
   let tmpFilePath = null;
 
   try {
-    const { itemId, fullName, companyName } = req.body || {};
+    // ---------------------------
+    // Parse body safely
+    // ---------------------------
+    let body = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
 
-    // ---------------------------
-    // Basic payload validation
-    // ---------------------------
+    const { itemId, fullName, companyName } = body || {};
+
     if (!itemId || !fullName || !companyName) {
       context.res = {
         status: 400,
-        headers: { "Content-Type": "text/plain" },
         body: "itemId, fullName, and companyName are required"
       };
       return;
     }
 
     // ---------------------------
-    // SharePoint constants
+    // ENV VARS (REQUIRED)
     // ---------------------------
-    const SITE_URL = "https://kadeancc.sharepoint.com/sites/SafetyFormsSite";
-    const LIST_TITLE = "Subcontractor Safety Acknowledgements";
-    const LIBRARY_PATH = "Shared Documents/SafetySignatures/Receipts";
+    const {
+      SITE_ID,
+      LIST_ID,
+      DRIVE_ID
+    } = process.env;
+
+    if (!SITE_ID || !LIST_ID || !DRIVE_ID) {
+      context.res = {
+        status: 500,
+        body: "Missing SITE_ID, LIST_ID, or DRIVE_ID"
+      };
+      return;
+    }
 
     // ---------------------------
-    // Get Managed Identity token
+    // Get Graph token via Managed Identity
     // ---------------------------
     const credential = new DefaultAzureCredential();
-    const token = await credential.getToken(
-      "https://kadeancc.sharepoint.com/.default"
-    );
+    const token = await credential.getToken("https://graph.microsoft.com/.default");
 
-    const authHeaders = {
+    const headers = {
       Authorization: `Bearer ${token.token}`,
-      Accept: "application/json;odata=verbose"
+      "Content-Type": "application/json"
     };
 
     // ---------------------------
     // Generate receipt PDF
     // ---------------------------
-    const { filePath, fileName } = await generateReceipt({
-      fullName,
-      companyName
-    });
-
+    const { filePath, fileName } = await generateReceipt({ fullName, companyName });
     tmpFilePath = filePath;
     const fileBuffer = fs.readFileSync(filePath);
 
     // ---------------------------
-    // Upload PDF to SharePoint
+    // Upload PDF to document library
+    // Path: /SafetySignatures/Receipts/
     // ---------------------------
     const uploadUrl =
-      `${SITE_URL}/_api/web/GetFolderByServerRelativeUrl('${LIBRARY_PATH}')` +
-      `/Files/add(url='${encodeURIComponent(fileName)}',overwrite=true)`;
+      `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}` +
+      `/root:/SafetySignatures/Receipts/${encodeURIComponent(fileName)}:/content`;
 
     const uploadRes = await fetch(uploadUrl, {
-      method: "POST",
+      method: "PUT",
       headers: {
-        ...authHeaders,
+        Authorization: `Bearer ${token.token}`,
         "Content-Type": "application/pdf"
       },
       body: fileBuffer
     });
 
     if (!uploadRes.ok) {
-      const t = await safeText(uploadRes);
-      throw withStatus(uploadRes.status, `Upload failed: ${t}`);
+      const t = await uploadRes.text();
+      throw new Error(`Upload failed: ${t}`);
     }
 
     const uploadJson = await uploadRes.json();
-    const receiptUrl = uploadJson.d.ListItemAllFields.__deferred.uri;
+    const receiptUrl = uploadJson.webUrl;
 
     // ---------------------------
     // Update SharePoint list item
     // ---------------------------
     const updateUrl =
-      `${SITE_URL}/_api/web/lists/getbytitle('${LIST_TITLE}')/items(${itemId})`;
+      `https://graph.microsoft.com/v1.0/sites/${SITE_ID}` +
+      `/lists/${LIST_ID}/items/${itemId}/fields`;
 
     const updateRes = await fetch(updateUrl, {
-      method: "POST",
-      headers: {
-        ...authHeaders,
-        "Content-Type": "application/json;odata=verbose",
-        "IF-MATCH": "*",
-        "X-HTTP-Method": "MERGE"
-      },
+      method: "PATCH",
+      headers,
       body: JSON.stringify({
         ReceiptUrlText: receiptUrl
       })
     });
 
     if (!updateRes.ok) {
-      const errText = await safeText(updateRes);
-      throw withStatus(updateRes.status, `List update failed: ${errText}`);
+      const t = await updateRes.text();
+      throw new Error(`List update failed: ${t}`);
     }
 
     // ---------------------------
@@ -108,7 +116,6 @@ module.exports = async function (context, req) {
     // ---------------------------
     context.res = {
       status: 200,
-      headers: { "Content-Type": "application/json" },
       body: {
         success: true,
         receiptUrl
@@ -117,44 +124,15 @@ module.exports = async function (context, req) {
 
   } catch (err) {
     context.log.error("subcontractorAck error:", err);
-    const status =
-      err.statusCode && Number.isInteger(err.statusCode)
-        ? err.statusCode
-        : 500;
-
     context.res = {
-      status,
-      headers: { "Content-Type": "text/plain" },
-      body: err.message || "Unknown error"
+      status: 500,
+      body: err.message
     };
-
   } finally {
-    // ---------------------------
-    // Cleanup temp file
-    // ---------------------------
     try {
       if (tmpFilePath && fs.existsSync(tmpFilePath)) {
         fs.unlinkSync(tmpFilePath);
       }
-    } catch (cleanupErr) {
-      context.log.warn("Failed to cleanup temp file:", cleanupErr);
-    }
-  }
-};
-
-// ---------------------------
-// Helpers
-// ---------------------------
-function withStatus(statusCode, message) {
-  const e = new Error(message);
-  e.statusCode = statusCode;
-  return e;
-}
-
-async function safeText(res) {
-  try {
-    return await res.text();
-  } catch {
-    return "<no-body>";
+    } catch {}
   }
 }

@@ -1,11 +1,14 @@
 {
-  "name": "swa-api",
+  "name": "api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "echo \"No build step required\""
+    "build": "echo api build"
   },
   "dependencies": {
-    "uuid": "^9.0.1"
+    "@azure/functions": "^4.0.0",
+    "node-fetch": "^3.3.2"
   }
 }
+
+

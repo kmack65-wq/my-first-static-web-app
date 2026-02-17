@@ -1,22 +1,11 @@
 {
-  "name": "safety-acknowledgement-api",
+  "name": "swa-api",
   "version": "1.0.0",
-  "description": "Azure Functions for Safety Acknowledgement App",
+  "private": true,
   "scripts": {
-    "start": "func start",
-    "test": "echo \"No tests specified\" && exit 0",
-    "build": "echo \"No build required for Node.js Functions\"",
-    "lint": "echo \"No linter configured\""
+    "build": "echo \"No build step required\""
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "node-fetch": "^2.7.0",
-    "pdfkit": "^0.14.0"
-  },
-  "devDependencies": {
-    "@azure/functions": "^4.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "uuid": "^9.0.1"
   }
 }

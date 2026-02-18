@@ -1,58 +1,14 @@
-export default async function (context, req) {
+const axios = require("axios");
 
-  context.log("RAW BODY:", req.rawBody);
-  context.log("REQ BODY:", req.body);
-  context.log("HEADERS:", req.headers);
+module.exports = async function (context, req) {
+  context.log("subcontractorAck function triggered");
 
-  let body = req.body;
-
-  if (!body && req.rawBody) {
-    try {
-      body = JSON.parse(req.rawBody);
-    } catch (e) {
-      context.log("JSON parse failed:", e.message);
-      body = {};
-    }
-  }
-
-  context.log("FINAL BODY:", body);
-
-  const { itemId, fullName, companyName } = body || {};
-
-  if (!itemId || !fullName || !companyName) {
-    context.res = {
-      status: 400,
-      body: {
-        error: "Missing required fields",
-        received: body
-      }
-    };
-    return;
-  }
-
-import fetch from "node-fetch";
-import fs from "fs";
-import { DefaultAzureCredential } from "@azure/identity";
-
-export default async function (context, req) {
   try {
-    // 🔍 Parse body safely
-    let body = req.body;
+    const body = req.body;
 
-if (!body) {
-  try {
-    body = JSON.parse(req.rawBody);
-  } catch {
-    body = {};
-  }
-}
-
-context.log("Parsed body:", body);
-
-const { itemId, fullName, companyName } = body;
-
-
-    if (!fullName || !companyName) {
+    // ✅ Validate required fields (MATCHES YOUR REAL PAYLOAD)
+    if (!body || !body.fullName || !body.companyName) {
+      context.log.warn("Missing required fields", body);
       context.res = {
         status: 400,
         body: { error: "Missing required fields: fullName, companyName" }
@@ -60,62 +16,74 @@ const { itemId, fullName, companyName } = body;
       return;
     }
 
-    // 🌍 ENV VARS
-    const SITE_ID = process.env.SP_SITE_ID;
-    const LIST_ID = process.env.SP_LIST_ID;
+    // 🔐 ENV VARIABLES
+    const SITE_ID = process.env.SITE_ID;
+    const LIST_ID = process.env.LIST_ID;
 
     if (!SITE_ID || !LIST_ID) {
-      context.res = {
-        status: 500,
-        body: { error: "Missing SP_SITE_ID or SP_LIST_ID" }
-      };
-      return;
+      throw new Error("Missing SITE_ID or LIST_ID environment variables");
     }
 
-    // 🔐 Managed Identity → Graph token
-    const credential = new DefaultAzureCredential();
-    const token = await credential.getToken("https://graph.microsoft.com/.default");
-
-    // 📝 Create SharePoint list item
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_ID}/items`,
+    // 🔑 Get Graph token via Managed Identity
+    const tokenResponse = await axios.get(
+      "http://169.254.169.254/metadata/identity/oauth2/token",
       {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token.token}`,
-          "Content-Type": "application/json"
+        params: {
+          "api-version": "2018-02-01",
+          resource: "https://graph.microsoft.com"
         },
-        body: JSON.stringify({
-          fields: {
-            Title: fullName,
-            Company_x0020_Name: companyName
-          }
-        })
+        headers: {
+          Metadata: "true"
+        }
       }
     );
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text);
-    }
+    const accessToken = tokenResponse.data.access_token;
 
-    const data = await response.json();
+    context.log("Managed Identity token acquired");
+
+    // 📝 Create SharePoint list item
+    const graphUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_ID}/items`;
+
+    const spResponse = await axios.post(
+      graphUrl,
+      {
+        fields: {
+          Title: body.fullName,
+          Company_x0020_Name: body.companyName,
+          Acknowledged: true
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    context.log("SharePoint item created", spResponse.data.id);
 
     context.res = {
       status: 201,
       body: {
-        success: true,
-        itemId: data.id
+        message: "Subcontractor acknowledgement saved",
+        itemId: spResponse.data.id
       }
     };
 
   } catch (err) {
-    context.log.error("Function error:", err);
+    context.log.error(
+      "subcontractorAck failed",
+      err.response?.data || err.message
+    );
+
     context.res = {
       status: 500,
-      body: err.message
+      body: {
+        error: "Failed to write to SharePoint",
+        details: err.response?.data || err.message
+      }
     };
   }
-}
-
-
+};

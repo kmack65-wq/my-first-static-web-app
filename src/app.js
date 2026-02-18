@@ -1,8 +1,19 @@
 console.log("app.js loaded");
 
+/********************************************
+ * 🔗 LOGIC APP HTTP TRIGGER URL
+ ********************************************/
+const LOGIC_APP_URL =
+  "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
+
+/********************************************
+ * INIT
+ ********************************************/
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ackForm");
   if (!form) return;
+
+  const submitBtn = document.getElementById("submitBtn");
 
   const allowedJobSites = [
     "25-129 PHC Cardiac Rehab",
@@ -26,8 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "Fondren Surgical Suites"
   ];
 
+  // Populate Job Site dropdown
   const jobSiteSelect = document.getElementById("jobSite");
-
   allowedJobSites.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -37,6 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const getVal = id => document.getElementById(id)?.value?.trim() ?? "";
 
+  /********************************************
+   * SUBMIT HANDLER
+   ********************************************/
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
@@ -57,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
+      submitBtn.disabled = true;
       window.setStatus("Submitting acknowledgement...", "info");
 
       const canvas = document.getElementById("signaturePad");
@@ -70,29 +85,33 @@ document.addEventListener("DOMContentLoaded", () => {
         email,
         acknowledged: true,
         signature,
-        timestamp: new Date().toISOString()
+        submittedAt: new Date().toISOString()
       };
 
-      // 🔥 REPLACE THIS WITH YOUR REAL LOGIC APP URL
-      const LOGIC_APP_URL = "PASTE_YOUR_LOGIC_APP_URL_HERE";
+      console.log("Sending payload:", payload);
 
       const res = await fetch(LOGIC_APP_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(errorText);
+        console.error("Logic App Error:", errorText);
+        throw new Error("Submission failed");
       }
 
       window.setStatus("Acknowledgement submitted successfully!", "success");
-      alert("Safety acknowledgement submitted.");
+      alert("Safety acknowledgement submitted successfully.");
 
+      // Reset form
       form.reset();
       canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
 
+      // Reset gate state
       window.safetyState.videoCompleted = false;
       window.safetyState.signatureCompleted = false;
       window.updateSubmitState();
@@ -100,6 +119,8 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error(err);
       window.setStatus("Submission failed. Please try again.", "error");
+    } finally {
+      submitBtn.disabled = false;
     }
   });
 });

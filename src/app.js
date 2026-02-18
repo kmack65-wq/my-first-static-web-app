@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ackForm");
   if (!form) return;
 
-  const allowedJobSites = [ 
+  const allowedJobSites = [
     "25-129 PHC Cardiac Rehab",
     "25-103 Ajax Memphis",
     "25-120 Blue Cloud Pittsburg",
@@ -26,8 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "Fondren Surgical Suites"
   ];
 
-  // Populate Job Site dropdown
   const jobSiteSelect = document.getElementById("jobSite");
+
   allowedJobSites.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -38,6 +38,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const getVal = id => document.getElementById(id)?.value?.trim() ?? "";
 
   form.addEventListener("submit", async e => {
+    e.preventDefault();
+
     const fullName = getVal("fullName");
     const companyName = getVal("companyName");
     const jobSite = jobSiteSelect.value;
@@ -45,19 +47,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = getVal("email");
 
     if (!fullName || !companyName) {
-      e.preventDefault();
       window.setStatus("Full Name and Company Name are required.", "error");
       return;
     }
 
     if (!jobSite || !allowedJobSites.includes(jobSite)) {
-      e.preventDefault();
       window.setStatus("Please select a valid Job Site.", "error");
       return;
     }
 
     try {
-      e.preventDefault();
       window.setStatus("Submitting acknowledgement...", "info");
 
       const canvas = document.getElementById("signaturePad");
@@ -69,17 +68,24 @@ document.addEventListener("DOMContentLoaded", () => {
         jobSite,
         phone,
         email,
+        acknowledged: true,
         signature,
         timestamp: new Date().toISOString()
       };
 
-      const res = await fetch("/api/submitSignature", {
+      // 🔥 REPLACE THIS WITH YOUR REAL LOGIC APP URL
+      const LOGIC_APP_URL = "PASTE_YOUR_LOGIC_APP_URL_HERE";
+
+      const res = await fetch(LOGIC_APP_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText);
+      }
 
       window.setStatus("Acknowledgement submitted successfully!", "success");
       alert("Safety acknowledgement submitted.");

@@ -1,20 +1,23 @@
 console.log("app.js loaded");
 
-/********************************************
- * 🔗 LOGIC APP HTTP TRIGGER URL
- ********************************************/
+/*********************************
+ * 🔐 AZURE LOGIC APP ENDPOINT
+ *********************************/
 const LOGIC_APP_URL =
   "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
 
-/********************************************
+/*********************************
  * INIT
- ********************************************/
+ *********************************/
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ackForm");
   if (!form) return;
 
-  const submitBtn = document.getElementById("submitBtn");
+  const jobSiteSelect = document.getElementById("jobSite");
 
+  /*********************************
+   * ALLOWED JOB SITES
+   *********************************/
   const allowedJobSites = [
     "25-129 PHC Cardiac Rehab",
     "25-103 Ajax Memphis",
@@ -38,7 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   // Populate Job Site dropdown
-  const jobSiteSelect = document.getElementById("jobSite");
   allowedJobSites.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -46,11 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
     jobSiteSelect.appendChild(opt);
   });
 
-  const getVal = id => document.getElementById(id)?.value?.trim() ?? "";
+  const getVal = id =>
+    document.getElementById(id)?.value?.trim() ?? "";
 
-  /********************************************
-   * SUBMIT HANDLER
-   ********************************************/
+  /*********************************
+   * FORM SUBMIT
+   *********************************/
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
@@ -70,12 +73,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (
+      !window.safetyState.videoCompleted ||
+      !window.safetyState.signatureCompleted
+    ) {
+      window.setStatus("Video and signature are required.", "error");
+      return;
+    }
+
     try {
-      submitBtn.disabled = true;
-      window.setStatus("Submitting acknowledgement...", "info");
+      window.setStatus("Submitting acknowledgement…", "info");
 
       const canvas = document.getElementById("signaturePad");
-      const signature = canvas.toDataURL("image/png");
+      const signatureBase64 = canvas.toDataURL("image/png");
 
       const payload = {
         fullName,
@@ -83,44 +93,43 @@ document.addEventListener("DOMContentLoaded", () => {
         jobSite,
         phone,
         email,
+        signature: signatureBase64,
         acknowledged: true,
-        signature,
         submittedAt: new Date().toISOString()
       };
 
-      console.log("Sending payload:", payload);
-
       const res = await fetch(LOGIC_APP_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Logic App Error:", errorText);
-        throw new Error("Submission failed");
+        const text = await res.text();
+        throw new Error(text);
       }
 
-      window.setStatus("Acknowledgement submitted successfully!", "success");
-      alert("Safety acknowledgement submitted successfully.");
+      window.setStatus(
+        "Acknowledgement submitted successfully!",
+        "success"
+      );
 
-      // Reset form
+      alert("Safety acknowledgement submitted.");
+
+      // Reset UI
       form.reset();
       canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
 
-      // Reset gate state
       window.safetyState.videoCompleted = false;
       window.safetyState.signatureCompleted = false;
       window.updateSubmitState();
 
     } catch (err) {
-      console.error(err);
-      window.setStatus("Submission failed. Please try again.", "error");
-    } finally {
-      submitBtn.disabled = false;
+      console.error("Submission error:", err);
+      window.setStatus(
+        "Submission failed. Please try again.",
+        "error"
+      );
     }
   });
 });

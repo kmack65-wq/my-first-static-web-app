@@ -1,14 +1,14 @@
 const axios = require("axios");
 
 module.exports = async function (context, req) {
-  context.log("subcontractorAck function triggered");
+  context.log("subcontractorAck triggered");
 
   try {
     const body = req.body;
 
-    // ✅ Validate required fields (MATCHES YOUR REAL PAYLOAD)
+    // ✅ CORRECT VALIDATION
     if (!body || !body.fullName || !body.companyName) {
-      context.log.warn("Missing required fields", body);
+      context.log.warn("Invalid request body", body);
       context.res = {
         status: 400,
         body: { error: "Missing required fields: fullName, companyName" }
@@ -16,15 +16,14 @@ module.exports = async function (context, req) {
       return;
     }
 
-    // 🔐 ENV VARIABLES
     const SITE_ID = process.env.SITE_ID;
     const LIST_ID = process.env.LIST_ID;
 
     if (!SITE_ID || !LIST_ID) {
-      throw new Error("Missing SITE_ID or LIST_ID environment variables");
+      throw new Error("Missing SITE_ID or LIST_ID env vars");
     }
 
-    // 🔑 Get Graph token via Managed Identity
+    // 🔑 Managed Identity token
     const tokenResponse = await axios.get(
       "http://169.254.169.254/metadata/identity/oauth2/token",
       {
@@ -32,21 +31,16 @@ module.exports = async function (context, req) {
           "api-version": "2018-02-01",
           resource: "https://graph.microsoft.com"
         },
-        headers: {
-          Metadata: "true"
-        }
+        headers: { Metadata: "true" }
       }
     );
 
     const accessToken = tokenResponse.data.access_token;
-
     context.log("Managed Identity token acquired");
 
-    // 📝 Create SharePoint list item
-    const graphUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_ID}/items`;
-
-    const spResponse = await axios.post(
-      graphUrl,
+    // 📝 Graph call (MATCHES YOUR SUCCESSFUL TEST)
+    const graphResponse = await axios.post(
+      `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_ID}/items`,
       {
         fields: {
           Title: body.fullName,
@@ -62,28 +56,21 @@ module.exports = async function (context, req) {
       }
     );
 
-    context.log("SharePoint item created", spResponse.data.id);
+    context.log("Item created", graphResponse.data.id);
 
     context.res = {
       status: 201,
       body: {
-        message: "Subcontractor acknowledgement saved",
-        itemId: spResponse.data.id
+        message: "Acknowledgement saved",
+        itemId: graphResponse.data.id
       }
     };
 
   } catch (err) {
-    context.log.error(
-      "subcontractorAck failed",
-      err.response?.data || err.message
-    );
-
+    context.log.error("subcontractorAck failed", err.response?.data || err.message);
     context.res = {
       status: 500,
-      body: {
-        error: "Failed to write to SharePoint",
-        details: err.response?.data || err.message
-      }
+      body: err.response?.data || err.message
     };
   }
 };

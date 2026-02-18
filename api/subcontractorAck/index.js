@@ -1,3 +1,35 @@
+export default async function (context, req) {
+
+  context.log("RAW BODY:", req.rawBody);
+  context.log("REQ BODY:", req.body);
+  context.log("HEADERS:", req.headers);
+
+  let body = req.body;
+
+  if (!body && req.rawBody) {
+    try {
+      body = JSON.parse(req.rawBody);
+    } catch (e) {
+      context.log("JSON parse failed:", e.message);
+      body = {};
+    }
+  }
+
+  context.log("FINAL BODY:", body);
+
+  const { itemId, fullName, companyName } = body || {};
+
+  if (!itemId || !fullName || !companyName) {
+    context.res = {
+      status: 400,
+      body: {
+        error: "Missing required fields",
+        received: body
+      }
+    };
+    return;
+  }
+
 import fetch from "node-fetch";
 import fs from "fs";
 import { DefaultAzureCredential } from "@azure/identity";
@@ -85,4 +117,5 @@ const { itemId, fullName, companyName } = body;
     };
   }
 }
+
 

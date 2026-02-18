@@ -1,138 +1,79 @@
-// /api/subcontractorAck/index.js
-
 import fetch from "node-fetch";
 import fs from "fs";
 import { DefaultAzureCredential } from "@azure/identity";
-import generateReceipt from "../shared/generateReceipt.js";
 
 export default async function (context, req) {
-  let tmpFilePath = null;
-
   try {
-    // ---------------------------
-    // Parse body safely
-    // ---------------------------
+    // 🔍 Parse body safely
     let body = req.body;
     if (typeof body === "string") {
-      try {
-        body = JSON.parse(body);
-      } catch {
-        body = {};
-      }
+      body = JSON.parse(body);
     }
 
-    const { itemId, fullName, companyName } = body || {};
+    const { fullName, companyName } = body || {};
 
-    if (!itemId || !fullName || !companyName) {
+    if (!fullName || !companyName) {
       context.res = {
         status: 400,
-        body: "itemId, fullName, and companyName are required"
+        body: { error: "Missing required fields: fullName, companyName" }
       };
       return;
     }
 
-    // ---------------------------
-    // ENV VARS (REQUIRED)
-    // ---------------------------
-const SITE_ID = process.env.SP_SITE_ID;
-const LIST_ID = process.env.SP_LIST_ID;
-const DRIVE_ID = process.env.SP_DRIVE_ID;
+    // 🌍 ENV VARS
+    const SITE_ID = process.env.SP_SITE_ID;
+    const LIST_ID = process.env.SP_LIST_ID;
 
-
-    if (!SITE_ID || !LIST_ID || !DRIVE_ID) {
+    if (!SITE_ID || !LIST_ID) {
       context.res = {
         status: 500,
-        body: "Missing SITE_ID, LIST_ID, or DRIVE_ID"
+        body: { error: "Missing SP_SITE_ID or SP_LIST_ID" }
       };
       return;
     }
 
-    // ---------------------------
-    // Get Graph token via Managed Identity
-    // ---------------------------
+    // 🔐 Managed Identity → Graph token
     const credential = new DefaultAzureCredential();
     const token = await credential.getToken("https://graph.microsoft.com/.default");
 
-    const headers = {
-      Authorization: `Bearer ${token.token}`,
-      "Content-Type": "application/json"
-    };
+    // 📝 Create SharePoint list item
+    const response = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_ID}/items`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          fields: {
+            Title: fullName,
+            Company_x0020_Name: companyName
+          }
+        })
+      }
+    );
 
-    // ---------------------------
-    // Generate receipt PDF
-    // ---------------------------
-    const { filePath, fileName } = await generateReceipt({ fullName, companyName });
-    tmpFilePath = filePath;
-    const fileBuffer = fs.readFileSync(filePath);
-
-    // ---------------------------
-    // Upload PDF to document library
-    // Path: /SafetySignatures/Receipts/
-    // ---------------------------
-    const uploadUrl =
-      `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}` +
-      `/root:/SafetySignatures/Receipts/${encodeURIComponent(fileName)}:/content`;
-
-    const uploadRes = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token.token}`,
-        "Content-Type": "application/pdf"
-      },
-      body: fileBuffer
-    });
-
-    if (!uploadRes.ok) {
-      const t = await uploadRes.text();
-      throw new Error(`Upload failed: ${t}`);
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text);
     }
 
-    const uploadJson = await uploadRes.json();
-    const receiptUrl = uploadJson.webUrl;
+    const data = await response.json();
 
-    // ---------------------------
-    // Update SharePoint list item
-    // ---------------------------
-    const updateUrl =
-      `https://graph.microsoft.com/v1.0/sites/${SITE_ID}` +
-      `/lists/${LIST_ID}/items/${itemId}/fields`;
-
-    const updateRes = await fetch(updateUrl, {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify({
-        ReceiptUrlText: receiptUrl
-      })
-    });
-
-    if (!updateRes.ok) {
-      const t = await updateRes.text();
-      throw new Error(`List update failed: ${t}`);
-    }
-
-    // ---------------------------
-    // Success
-    // ---------------------------
     context.res = {
-      status: 200,
+      status: 201,
       body: {
         success: true,
-        receiptUrl
+        itemId: data.id
       }
     };
 
   } catch (err) {
-    context.log.error("subcontractorAck error:", err);
+    context.log.error("Function error:", err);
     context.res = {
       status: 500,
       body: err.message
     };
-  } finally {
-    try {
-      if (tmpFilePath && fs.existsSync(tmpFilePath)) {
-        fs.unlinkSync(tmpFilePath);
-      }
-    } catch {}
   }
 }
-

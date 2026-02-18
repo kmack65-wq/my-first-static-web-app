@@ -6,11 +6,19 @@ export default async function (context, req) {
   try {
     // 🔍 Parse body safely
     let body = req.body;
-    if (typeof body === "string") {
-      body = JSON.parse(body);
-    }
 
-    const { fullName, companyName } = body || {};
+if (!body) {
+  try {
+    body = JSON.parse(req.rawBody);
+  } catch {
+    body = {};
+  }
+}
+
+context.log("Parsed body:", body);
+
+const { itemId, fullName, companyName } = body;
+
 
     if (!fullName || !companyName) {
       context.res = {
@@ -77,3 +85,4 @@ export default async function (context, req) {
     };
   }
 }
+

@@ -7,6 +7,12 @@ window.safetyState = {
 };
 
 /*********************************
+ * LOGIC APP CONFIG
+ *********************************/
+const LOGIC_APP_URL =
+  "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
+
+/*********************************
  * HELPERS
  *********************************/
 function $(id) {
@@ -34,7 +40,7 @@ function updateSubmitState() {
   );
 }
 
-// 🔑 expose globally
+// expose globally
 window.updateSubmitState = updateSubmitState;
 
 /*********************************
@@ -72,7 +78,7 @@ function initSignaturePad() {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#ffffff"; // WHITE PEN
+    ctx.strokeStyle = "#ffffff"; // white pen
   }
 
   resizeCanvas();
@@ -120,28 +126,78 @@ function initSignaturePad() {
   canvas.addEventListener("touchend", stop);
 
   // Clear
-  clearBtn.addEventListener("click", () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    window.safetyState.signatureCompleted = false;
-    updateSubmitState();
-    setStatus("Signature cleared. Please sign again.", "info");
-  });
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      window.safetyState.signatureCompleted = false;
+      updateSubmitState();
+      setStatus("Signature cleared. Please sign again.", "info");
+    });
+  }
 }
 
 /*********************************
- * FORM GUARD (UI ONLY)
+ * LOGIC APP SUBMISSION
+ *********************************/
+async function submitAcknowledgement({ fullName, companyName }) {
+  const payload = {
+    fullName,
+    companyName,
+    acknowledged: true
+  };
+
+  const response = await fetch(LOGIC_APP_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Submission failed");
+  }
+}
+
+/*********************************
+ * FORM GUARD + SUBMIT
  *********************************/
 function initFormGuard() {
   const form = $("ackForm");
   if (!form) return;
 
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+
     if (
       !window.safetyState.videoCompleted ||
       !window.safetyState.signatureCompleted
     ) {
-      e.preventDefault();
       setStatus("Please complete the video and signature.", "error");
+      return;
+    }
+
+    const fullName = $("fullName")?.value?.trim();
+    const companyName = $("companyName")?.value?.trim();
+
+    if (!fullName || !companyName) {
+      setStatus("Please enter your full name and company.", "error");
+      return;
+    }
+
+    try {
+      setStatus("Submitting acknowledgement…", "info");
+      $("submitBtn").disabled = true;
+
+      await submitAcknowledgement({ fullName, companyName });
+
+      setStatus("Acknowledgement submitted successfully ✔", "success");
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      setStatus("Submission failed. Please try again.", "error");
+      $("submitBtn").disabled = false;
     }
   });
 }

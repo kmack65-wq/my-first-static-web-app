@@ -1,23 +1,18 @@
 console.log("app.js loaded");
 
 /*********************************
- * 🔐 AZURE LOGIC APP ENDPOINT
+ * CONFIG
  *********************************/
 const LOGIC_APP_URL =
   "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
 
 /*********************************
- * INIT
+ * APP LOGIC
  *********************************/
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ackForm");
   if (!form) return;
 
-  const jobSiteSelect = document.getElementById("jobSite");
-
-  /*********************************
-   * ALLOWED JOB SITES
-   *********************************/
   const allowedJobSites = [
     "25-129 PHC Cardiac Rehab",
     "25-103 Ajax Memphis",
@@ -41,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   // Populate Job Site dropdown
+  const jobSiteSelect = document.getElementById("jobSite");
   allowedJobSites.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -51,9 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const getVal = id =>
     document.getElementById(id)?.value?.trim() ?? "";
 
-  /*********************************
-   * FORM SUBMIT
-   *********************************/
   form.addEventListener("submit", async e => {
     e.preventDefault();
 
@@ -73,19 +66,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (
-      !window.safetyState.videoCompleted ||
-      !window.safetyState.signatureCompleted
-    ) {
-      window.setStatus("Video and signature are required.", "error");
-      return;
-    }
-
     try {
-      window.setStatus("Submitting acknowledgement…", "info");
+      window.setStatus("Submitting acknowledgement...", "info");
 
       const canvas = document.getElementById("signaturePad");
-      const signatureBase64 = canvas.toDataURL("image/png");
+      const signature = canvas.toDataURL("image/png");
 
       const payload = {
         fullName,
@@ -93,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         jobSite,
         phone,
         email,
-        signature: signatureBase64,
+        signature,
         acknowledged: true,
         submittedAt: new Date().toISOString()
       };
@@ -109,14 +94,9 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(text);
       }
 
-      window.setStatus(
-        "Acknowledgement submitted successfully!",
-        "success"
-      );
-
+      window.setStatus("Acknowledgement submitted successfully!", "success");
       alert("Safety acknowledgement submitted.");
 
-      // Reset UI
       form.reset();
       canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
 
@@ -125,11 +105,8 @@ document.addEventListener("DOMContentLoaded", () => {
       window.updateSubmitState();
 
     } catch (err) {
-      console.error("Submission error:", err);
-      window.setStatus(
-        "Submission failed. Please try again.",
-        "error"
-      );
+      console.error(err);
+      window.setStatus("Submission failed. Please try again.", "error");
     }
   });
 });

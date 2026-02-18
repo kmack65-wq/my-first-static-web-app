@@ -34,11 +34,10 @@ export default async function (context, req) {
     // ---------------------------
     // ENV VARS (REQUIRED)
     // ---------------------------
-    const {
-      SITE_ID,
-      LIST_ID,
-      DRIVE_ID
-    } = process.env;
+const SITE_ID = process.env.SP_SITE_ID;
+const LIST_ID = process.env.SP_LIST_ID;
+const DRIVE_ID = process.env.SP_DRIVE_ID;
+
 
     if (!SITE_ID || !LIST_ID || !DRIVE_ID) {
       context.res = {
@@ -136,3 +135,4 @@ export default async function (context, req) {
     } catch {}
   }
 }
+

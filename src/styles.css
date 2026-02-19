@@ -1,80 +1,201 @@
+/*********************************
+  GLOBAL THEME
+*********************************/
 body.dark {
-  background: #121212;
-  color: #ffffff;
-  font-family: system-ui, sans-serif;
+  background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0;
 }
 
+/*********************************
+  CONTAINER
+*********************************/
 .container {
-  max-width: 700px;
+  max-width: 720px;
   margin: auto;
-  padding: 20px;
+  padding: 28px 22px 40px;
+}
+
+/*********************************
+  LOGO
+*********************************/
+.logo {
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .logo img {
   max-width: 220px;
-  margin-bottom: 20px;
 }
 
+/*********************************
+  HEADINGS
+*********************************/
+h1 {
+  text-align: center;
+  color: #38bdf8; /* BLUE */
+  margin-bottom: 28px;
+}
+
+h2 {
+  color: #7dd3fc;
+  margin-bottom: 12px;
+}
+
+/*********************************
+  SECTIONS
+*********************************/
 .section {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 18px;
   margin-bottom: 24px;
 }
 
+/*********************************
+  FORM ELEMENTS
+*********************************/
 label {
   display: block;
-  margin-top: 12px;
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: #cbd5f5;
 }
 
-input, select {
+input,
+select {
   width: 100%;
-  padding: 10px;
+  padding: 11px 12px;
   margin-top: 6px;
-}
-
-video {
+  background: #020617;
+  color: #ffffff;
+  border: 1px solid #334155;
   border-radius: 6px;
+  font-size: 0.95rem;
 }
 
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
+}
+
+/*********************************
+  VIDEO
+*********************************/
+video {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #000;
+}
+
+/*********************************
+  SIGNATURE PAD
+*********************************/
 canvas {
   width: 100%;
   height: 150px;
-  background: #222;
-  border-radius: 6px;
+  background: #020617;
+  border: 2px dashed #38bdf8;
+  border-radius: 8px;
+  cursor: crosshair;
 }
 
+/*********************************
+  BUTTONS
+*********************************/
 button {
-  margin-top: 20px;
-  padding: 12px;
+  margin-top: 18px;
+  padding: 13px;
   width: 100%;
   font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
 }
 
+/* Primary submit */
+#submitBtn {
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+  color: #020617;
+}
+
+#submitBtn:disabled {
+  background: #334155;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Clear signature */
+#clearSignature {
+  background: transparent;
+  border: 1px solid #64748b;
+  color: #e5e7eb;
+}
+
+#clearSignature:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+/*********************************
+  STATUS MESSAGES
+*********************************/
 .status {
-  margin-top: 16px;
+  margin-top: 18px;
+  font-size: 0.95rem;
 }
 
-.status-info { color: #aaa; }
-.status-success { color: #4caf50; }
-.status-error { color: #ff5252; }
+.status-info {
+  color: #94a3b8;
+}
 
+.status-success {
+  color: #22c55e;
+}
+
+.status-error {
+  color: #ef4444;
+}
+
+/*********************************
+  SUCCESS SCREEN
+*********************************/
 .hidden {
   display: none;
 }
 
 .success-screen {
   text-align: center;
-  padding: 40px 20px;
+  padding: 48px 20px;
 }
 
 .success-screen h1 {
-  color: #4caf50;
+  color: #38bdf8;
   margin-bottom: 16px;
 }
 
 .success-screen p {
   font-size: 1.1rem;
+  color: #e5e7eb;
 }
 
 .success-screen .small {
   font-size: 0.9rem;
-  opacity: 0.7;
+  opacity: 0.75;
+}
+
+/*********************************
+  FOOTER
+*********************************/
+footer {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.85rem;
+  color: #94a3b8;
 }

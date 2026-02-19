@@ -3,8 +3,50 @@ console.log("app.js loaded");
 // =====================
 // CONFIG
 // =====================
+const APP_CONFIG = window.APP_CONFIG || {
+  requireVideo: true,
+  language: "en"
+};
+
 const LOGIC_APP_URL = "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
-const TEST_MODE = true; // set true to bypass video requirement
+
+// =====================
+// TRANSLATIONS
+// =====================
+const TEXT = {
+  en: {
+    title: "Safety Acknowledgement",
+    videoTitle: "Required Safety Video",
+    videoStatus: "You must watch the entire video before submitting.",
+    videoComplete: "Video completed. Please sign below.",
+    fullName: "Full Name",
+    companyName: "Company Name",
+    jobSite: "Job Site",
+    email: "Email",
+    clear: "Clear Signature",
+    submit: "Submit Acknowledgement",
+    footer: "By submitting this form, you confirm completion of the required safety training.",
+    successTitle: "Submission Complete",
+    successMessage: "Submission complete. Please screenshot this screen."
+  },
+  es: {
+    title: "Confirmación de Seguridad",
+    videoTitle: "Video de Seguridad Requerido",
+    videoStatus: "Debe ver el video completo antes de enviar.",
+    videoComplete: "Video completado. Por favor firme abajo.",
+    fullName: "Nombre Completo",
+    companyName: "Nombre de la Empresa",
+    jobSite: "Lugar de Trabajo",
+    email: "Correo Electrónico",
+    clear: "Borrar Firma",
+    submit: "Enviar Confirmación",
+    footer: "Al enviar este formulario, usted confirma que completó la capacitación de seguridad requerida.",
+    successTitle: "Envío Completo",
+    successMessage: "Envío completo. Por favor tome una captura de pantalla."
+  }
+};
+
+const t = TEXT[APP_CONFIG.language] || TEXT.en;
 
 // =====================
 // JOB SITES
@@ -36,6 +78,7 @@ let isDrawing = false;
 let canvas, ctx;
 
 document.addEventListener("DOMContentLoaded", () => {
+  applyTranslations();
   populateJobSites();
   setupVideo();
   setupSignaturePad();
@@ -43,10 +86,37 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =====================
+// APPLY TRANSLATIONS
+// =====================
+function applyTranslations() {
+  document.title = t.title;
+
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  set("pageTitle", t.title);
+  set("videoTitle", t.videoTitle);
+  set("videoStatus", t.videoStatus);
+  set("labelFullName", t.fullName);
+  set("labelCompany", t.companyName);
+  set("labelJobSite", t.jobSite);
+  set("labelEmail", t.email);
+  set("clearSignature", t.clear);
+  set("submitButton", t.submit);
+  set("footerNote", t.footer);
+  set("successTitle", t.successTitle);
+  set("successMessage", t.successMessage);
+}
+
+// =====================
 // JOB SITE DROPDOWN
 // =====================
 function populateJobSites() {
   const select = document.getElementById("jobSite");
+  if (!select) return;
+
   JOB_SITES.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -62,10 +132,19 @@ function setupVideo() {
   const video = document.getElementById("safetyVideo");
   const status = document.getElementById("videoStatus");
 
-  video.addEventListener("ended", () => {
+  if (!APP_CONFIG.requireVideo) {
     videoCompleted = true;
-    status.textContent = "Video completed. Please sign below.";
-  });
+    if (video) video.style.display = "none";
+    if (status) status.style.display = "none";
+    return;
+  }
+
+  if (video) {
+    video.addEventListener("ended", () => {
+      videoCompleted = true;
+      if (status) status.textContent = t.videoComplete;
+    });
+  }
 }
 
 // =====================
@@ -73,8 +152,9 @@ function setupVideo() {
 // =====================
 function setupSignaturePad() {
   canvas = document.getElementById("signatureCanvas");
-  ctx = canvas.getContext("2d");
+  if (!canvas) return;
 
+  ctx = canvas.getContext("2d");
   resizeCanvas();
 
   canvas.addEventListener("mousedown", startDraw);
@@ -85,10 +165,6 @@ function setupSignaturePad() {
   canvas.addEventListener("touchstart", startDraw);
   canvas.addEventListener("touchmove", draw);
   canvas.addEventListener("touchend", stopDraw);
-
-  document
-    .getElementById("clearSignature")
-    .addEventListener("click", clearSignature);
 
   window.addEventListener("resize", resizeCanvas);
 }
@@ -140,13 +216,17 @@ function setupSubmit() {
   document
     .getElementById("ackForm")
     .addEventListener("submit", submitForm);
+
+  document
+    .getElementById("clearSignature")
+    .addEventListener("click", clearSignature);
 }
 
 async function submitForm(e) {
   e.preventDefault();
 
-  if (!TEST_MODE && !videoCompleted) {
-    alert("Please watch the entire video before submitting.");
+  if (APP_CONFIG.requireVideo && !videoCompleted) {
+    alert(t.videoStatus);
     return;
   }
 
@@ -181,7 +261,7 @@ function showSuccessScreen() {
   const submissionTime = document.getElementById("submissionTime");
 
   submissionTime.textContent =
-    "Submitted on " + new Date().toLocaleString();
+    new Date().toLocaleString();
 
   formWrapper.classList.add("hidden");
   successScreen.classList.remove("hidden");

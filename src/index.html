@@ -1,145 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Safety Orientation Acknowledgement</title>
-
+  <title>Safety Acknowledgement</title>
   <link rel="stylesheet" href="styles.css" />
-
-  <style>
-    .hidden {
-      display: none;
-    }
-
-    .success-screen {
-      text-align: center;
-      padding: 60px 20px;
-    }
-
-    .success-screen h1 {
-      color: #4CAF50;
-      margin-bottom: 16px;
-    }
-
-    .success-screen p {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-  </style>
 </head>
-
 <body class="dark">
-  <div class="container">
 
-    <!-- LOGO -->
-    <div class="logo">
-      <img src="assets/logo.png" alt="Kadean Construction Logo" />
-    </div>
+<div class="container">
 
-    <!-- ========================= -->
-    <!-- FORM WRAPPER -->
-    <!-- ========================= -->
-    <div id="formWrapper">
+  <div id="formSection">
 
-      <h1>Safety Orientation Acknowledgement</h1>
+    <h2>Safety Acknowledgement</h2>
 
-      <!-- VIDEO -->
-      <section class="section">
-        <h2>Required Safety Video</h2>
+    <form id="ackForm">
 
-        <div class="video-wrapper">
-          <video
-            id="trainingVideo"
-            width="100%"
-            controls
-            controlsList="nodownload"
-          >
-            <source
-              src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
-              type="video/mp4"
-            />
-            Your browser does not support the video tag.
-          </video>
-        </div>
+      <label>Full Name</label>
+      <input type="text" id="fullName" required />
 
-        <div class="note">
-          You must watch the entire video before submitting this form.
-        </div>
-      </section>
+      <label>Company Name</label>
+      <input type="text" id="companyName" required />
 
-      <!-- FORM -->
-      <form id="ackForm">
+      <label>Job Site</label>
+      <select id="jobSite" required>
+        <option value="">Select a job site</option>
+        <option>25-129 PHC Cardiac Rehab</option>
+        <option>25-103 Ajax Memphis</option>
+        <option>25-120 Blue Cloud Pittsburg</option>
+        <option>24-116 BS-MOB 2 / Addition</option>
+        <option>25-131 Eagle Point Expansion</option>
+        <option>25-116 Harcros Chemical</option>
+        <option>25-127 Alton Memorial SLCH Therapy</option>
+        <option>25-126 Blue Cloud Toledo</option>
+        <option>25-114 Mapletree Corp</option>
+        <option>364 Logistics Center</option>
+        <option>25-132 Blue Cloud Charlotte</option>
+        <option>25-134 Blue Cloud Reno</option>
+        <option>25-105 MBMC Switchgear</option>
+        <option>25-111 PHC Power Plant</option>
+        <option>23-159 BJH CPAP Renovation/ Change Order</option>
+        <option>25-130 Kuna Freezer Expansion</option>
+        <option>25-121 ABC Supply</option>
+        <option>RMMC CO</option>
+        <option>Fondren Surgical Suites</option>
+      </select>
 
-        <section class="section">
-          <label for="fullName">Full Name</label>
-          <input id="fullName" required />
+      <label>Email</label>
+      <input type="email" id="email" required />
 
-          <label for="companyName">Company Name</label>
-          <input id="companyName" required />
+      <h3>Signature</h3>
+      <canvas id="signaturePad"></canvas>
 
-          <label for="jobSite">Job Site</label>
-          <select id="jobSite" required>
-            <option value="">Select a job site</option>
-          </select>
+      <button type="button" id="clearBtn">Clear Signature</button>
+      <button type="submit">Submit Acknowledgement</button>
 
-          <label for="phone">Phone</label>
-          <input id="phone" />
-
-          <label for="email">Email</label>
-          <input id="email" type="email" />
-        </section>
-
-        <!-- SIGNATURE -->
-        <section class="section">
-          <h2>Signature</h2>
-
-          <canvas id="signaturePad"></canvas>
-
-          <div class="signature-actions">
-            <button type="button" id="clearSignature">
-              Clear Signature
-            </button>
-          </div>
-        </section>
-
-        <button id="submitBtn" type="submit" disabled>
-          Submit Acknowledgement
-        </button>
-      </form>
-
-      <!-- STATUS -->
-      <div id="status" class="status info"></div>
-
-    </div>
-
-    <!-- ========================= -->
-    <!-- SUCCESS SCREEN -->
-    <!-- ========================= -->
-    <div id="successScreen" class="success-screen hidden">
-  <h1>Submission Complete</h1>
-
-  <p><strong>Please screenshot this screen for your records.</strong></p>
-
-  <p id="submissionTimestamp" class="timestamp"></p>
-
-  <p class="small">
-    This confirms you have completed the required safety orientation.
-  </p>
-</div>
-
-
-    <footer>
-      By submitting this form, you confirm completion of the required safety training.
-    </footer>
+    </form>
 
   </div>
 
-  <!-- SCRIPT ORDER MATTERS -->
-  <script src="script.js"></script>
-  <script src="app.js"></script>
+  <!-- SUCCESS SCREEN -->
+  <div id="successScreen" class="success-screen hidden">
+    <h1>Submission Complete</h1>
 
+    <p><strong>Please screenshot this screen for your records.</strong></p>
+
+    <p id="submissionTimestamp" class="timestamp"></p>
+
+    <p class="small">
+      This confirms you have completed the required safety orientation.
+    </p>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
-
-

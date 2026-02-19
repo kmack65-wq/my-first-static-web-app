@@ -182,6 +182,25 @@ function initFormSubmit() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+      function showSuccessScreen() {
+  const now = new Date();
+
+  const formatted = now.toLocaleString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
+
+  document.getElementById("submissionTimestamp").textContent =
+    `Submitted on: ${formatted}`;
+
+  document.getElementById("ackForm").classList.add("hidden");
+  document.getElementById("successScreen").classList.remove("hidden");
+}
+
 
       if (!res.ok) throw new Error("Submit failed");
 

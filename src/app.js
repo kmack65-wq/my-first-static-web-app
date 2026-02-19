@@ -1,167 +1,231 @@
-console.log("app.js loaded");
-
-/* =========================
-   CONFIG
-========================= */
-
+/*************************************************
+ * CONFIG
+ *************************************************/
 const LOGIC_APP_URL =
   "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
 
-// ⚠️ SET TO true FOR TESTING (skips video requirement)
-const SKIP_VIDEO_CHECK = true;
+// 🔧 DEV MODE — set to false for production
+const DEV_BYPASS_VIDEO = true;
 
-/* =========================
-   DOM READY
-========================= */
+/*************************************************
+ * GLOBAL STATE (ONE DECLARATION ONLY)
+ *************************************************/
+const safetyState = {
+  videoCompleted: DEV_BYPASS_VIDEO,
+  signatureCompleted: false,
+  submitting: false
+};
 
+/*************************************************
+ * DOM HELPERS
+ *************************************************/
+const $ = id => document.getElementById(id);
+
+/*************************************************
+ * FORCE BLUE THEME BACK
+ *************************************************/
 document.addEventListener("DOMContentLoaded", () => {
-  setupJobSites();
-  setupSignaturePad();
-  setupFormSubmit();
+  document.body.classList.remove("dark");
+  document.body.classList.add("blue-theme");
 });
 
-/* =========================
-   JOB SITES (HARDCODED)
-========================= */
+/*************************************************
+ * JOB SITES (HARDCODED)
+ *************************************************/
+const JOB_SITES = [
+  "25-129 PHC Cardiac Rehab",
+  "25-103 Ajax Memphis",
+  "25-120 Blue Cloud Pittsburg",
+  "24-116 BS-MOB 2 / Addition",
+  "25-131 Eagle Point Expansion",
+  "25-116 Harcros Chemical",
+  "25-127 Alton Memorial SLCH Therapy",
+  "25-126 Blue Cloud Toledo",
+  "25-114 Mapletree Corp",
+  "364 Logistics Center",
+  "25-132 Blue Cloud Charlotte",
+  "25-134 Blue Cloud Reno",
+  "25-105 MBMC Switchgear",
+  "25-111 PHC Power Plant",
+  "23-159 BJH CPAP Renovation/ Change Order",
+  "25-130 Kuna Freezer Expansion",
+  "25-121 ABC Supply",
+  "RMMC CO",
+  "Fondren Surgical Suites"
+];
 
-function setupJobSites() {
-  const jobSiteSelect = document.getElementById("jobSite");
+/*************************************************
+ * POPULATE JOB SITES
+ *************************************************/
+function loadJobSites() {
+  const select = $("jobSite");
+  if (!select) return;
 
-  if (!jobSiteSelect) {
-    console.error("Job site dropdown not found");
-    return;
-  }
-
-  const jobSites = [
-    "25-129 PHC Cardiac Rehab",
-    "25-103 Ajax Memphis",
-    "25-120 Blue Cloud Pittsburg",
-    "24-116 BS-MOB 2 / Addition",
-    "25-131 Eagle Point Expansion",
-    "25-116 Harcros Chemical",
-    "25-127 Alton Memorial SLCH Therapy",
-    "25-126 Blue Cloud Toledo",
-    "25-114 Mapletree Corp",
-    "364 Logistics Center",
-    "25-132 Blue Cloud Charlotte",
-    "25-134 Blue Cloud Reno",
-    "25-105 MBMC Switchgear",
-    "25-111 PHC Power Plant",
-    "23-159 BJH CPAP Renovation/ Change Order",
-    "25-130 Kuna Freezer Expansion",
-    "25-121 ABC Supply",
-    "RMMC CO",
-    "Fondren Surgical Suites"
-  ];
-
-  jobSiteSelect.innerHTML = `<option value="">Select a job site</option>`;
-
-  jobSites.forEach(site => {
-    const option = document.createElement("option");
-    option.value = site;
-    option.textContent = site;
-    jobSiteSelect.appendChild(option);
+  select.innerHTML = `<option value="">Select a job site</option>`;
+  JOB_SITES.forEach(site => {
+    const opt = document.createElement("option");
+    opt.value = site;
+    opt.textContent = site;
+    select.appendChild(opt);
   });
-
-  console.log("Job sites loaded:", jobSites.length);
 }
 
-/* =========================
-   SIGNATURE PAD (FIXED)
-========================= */
+/*************************************************
+ * VIDEO GATE
+ *************************************************/
+function initVideoGate() {
+  if (DEV_BYPASS_VIDEO) return;
 
-let isDrawing = false;
-let ctx;
+  const video = $("trainingVideo");
+  if (!video) return;
+
+  video.addEventListener("ended", () => {
+    safetyState.videoCompleted = true;
+    updateSubmitState();
+    setStatus("Video completed. Please sign below.", "success");
+  });
+}
+
+/*************************************************
+ * SIGNATURE PAD (SINGLE CONTEXT)
+ *************************************************/
 let canvas;
+let ctx;
+let drawing = false;
 
-function setupSignaturePad() {
-  canvas = document.getElementById("signatureCanvas");
-  if (!canvas) {
-    console.error("Signature canvas not found");
-    return;
-  }
+function initSignaturePad() {
+  canvas = $("signaturePad");
+  if (!canvas) return;
 
   ctx = canvas.getContext("2d");
+
   resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
 
   canvas.addEventListener("mousedown", startDraw);
   canvas.addEventListener("mousemove", draw);
-  canvas.addEventListener("mouseup", endDraw);
-  canvas.addEventListener("mouseleave", endDraw);
+  canvas.addEventListener("mouseup", stopDraw);
+  canvas.addEventListener("mouseleave", stopDraw);
 
-  canvas.addEventListener("touchstart", startDraw);
-  canvas.addEventListener("touchmove", draw);
-  canvas.addEventListener("touchend", endDraw);
+  canvas.addEventListener("touchstart", e => startDraw(e.touches[0]), { passive: false });
+  canvas.addEventListener("touchmove", e => draw(e.touches[0]), { passive: false });
+  canvas.addEventListener("touchend", stopDraw);
 
-  window.addEventListener("resize", resizeCanvas);
+  $("clearSignature")?.addEventListener("click", clearSignature);
 }
 
 function resizeCanvas() {
+  const ratio = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
+  canvas.width = rect.width * ratio;
+  canvas.height = 150 * ratio;
+
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#ffffff";
+}
+
+function getPoint(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
 }
 
 function startDraw(e) {
-  isDrawing = true;
+  drawing = true;
   ctx.beginPath();
-  ctx.moveTo(getX(e), getY(e));
+  const p = getPoint(e);
+  ctx.moveTo(p.x, p.y);
+  e.preventDefault();
 }
 
 function draw(e) {
-  if (!isDrawing) return;
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "#fff";
-  ctx.lineTo(getX(e), getY(e));
+  if (!drawing) return;
+  const p = getPoint(e);
+  ctx.lineTo(p.x, p.y);
   ctx.stroke();
+  safetyState.signatureCompleted = true;
+  updateSubmitState();
 }
 
-function endDraw() {
-  isDrawing = false;
-}
-
-function getX(e) {
-  return (e.touches ? e.touches[0].clientX : e.clientX) - canvas.getBoundingClientRect().left;
-}
-
-function getY(e) {
-  return (e.touches ? e.touches[0].clientY : e.clientY) - canvas.getBoundingClientRect().top;
+function stopDraw() {
+  drawing = false;
 }
 
 function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  safetyState.signatureCompleted = false;
+  updateSubmitState();
 }
 
-/* =========================
-   FORM SUBMISSION
-========================= */
+/*************************************************
+ * SUBMIT BUTTON STATE
+ *************************************************/
+function updateSubmitState() {
+  const btn = $("submitBtn");
+  if (!btn) return;
 
-function setupFormSubmit() {
-  const form = document.getElementById("ackForm");
+  btn.disabled = !(
+    safetyState.videoCompleted &&
+    safetyState.signatureCompleted &&
+    !safetyState.submitting
+  );
+}
+
+/*************************************************
+ * STATUS UI
+ *************************************************/
+function setStatus(msg, type = "info") {
+  const el = $("status");
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `status ${type}`;
+}
+
+/*************************************************
+ * SUCCESS SCREEN
+ *************************************************/
+function showSuccessScreen() {
+  document.querySelector(".container").innerHTML = `
+    <div class="success-screen">
+      <h1>Submission Complete</h1>
+      <p>Thank you. Your safety acknowledgement has been recorded.</p>
+      <p>You may now close this page.</p>
+    </div>
+  `;
+}
+
+/*************************************************
+ * FORM SUBMIT
+ *************************************************/
+function initFormSubmit() {
+  const form = $("ackForm");
   if (!form) return;
 
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", async e => {
     e.preventDefault();
-
-    if (!SKIP_VIDEO_CHECK && !window.videoCompleted) {
-      alert("You must watch the full video.");
-      return;
-    }
-
-    const signatureData = canvas.toDataURL("image/png");
+    if (safetyState.submitting) return;
 
     const payload = {
-      fullName: form.fullName.value,
-      companyName: form.companyName.value,
-      jobSite: form.jobSite.value,
-      phone: form.phone.value,
-      email: form.email.value,
-      signature: signatureData,
+      fullName: $("fullName").value.trim(),
+      companyName: $("companyName").value.trim(),
+      jobSite: $("jobSite").value,
+      phone: $("phone").value.trim(),
+      email: $("email").value.trim(),
+      signature: canvas.toDataURL("image/png"),
       timestamp: new Date().toISOString()
     };
 
+    if (!payload.fullName || !payload.companyName || !payload.jobSite) {
+      setStatus("Please complete all required fields.", "error");
+      return;
+    }
+
     try {
+      safetyState.submitting = true;
+      updateSubmitState();
+      setStatus("Submitting acknowledgement…", "info");
+
       const res = await fetch(LOGIC_APP_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -171,31 +235,29 @@ function setupFormSubmit() {
       if (!res.ok) throw new Error("Submit failed");
 
       showSuccessScreen();
+
     } catch (err) {
       console.error(err);
-      alert("Submission failed. Please try again.");
+      setStatus("Submission failed. Please try again.", "error");
+      safetyState.submitting = false;
+      updateSubmitState();
     }
   });
 }
 
-/* =========================
-   SUCCESS SCREEN
-========================= */
+/*************************************************
+ * INIT
+ *************************************************/
+document.addEventListener("DOMContentLoaded", () => {
+  loadJobSites();
+  initVideoGate();
+  initSignaturePad();
+  initFormSubmit();
+  updateSubmitState();
 
-function showSuccessScreen() {
-  document.body.innerHTML = `
-    <div style="
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      height:100vh;
-      background:#000;
-      color:#0f0;
-      font-size:22px;
-      text-align:center;">
-      <h1>✅ Submission Complete</h1>
-      <p>Your safety acknowledgement has been recorded.</p>
-    </div>
-  `;
-}
+  if (DEV_BYPASS_VIDEO) {
+    setStatus("DEV MODE: Video check bypassed.", "info");
+  } else {
+    setStatus("Please watch the video to begin.", "info");
+  }
+});

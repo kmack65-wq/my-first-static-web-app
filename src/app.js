@@ -1,13 +1,12 @@
 console.log("app.js loaded");
 
 /*********************************
- * CONFIG
+ * 🔐 LOGIC APP ENDPOINT
  *********************************/
-const LOGIC_APP_URL =
-  "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
+const LOGIC_APP_URL = "PASTE_YOUR_FULL_LOGIC_APP_URL_HERE";
 
 /*********************************
- * APP LOGIC
+ * INIT
  *********************************/
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("ackForm");
@@ -35,8 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "Fondren Surgical Suites"
   ];
 
-  // Populate Job Site dropdown
   const jobSiteSelect = document.getElementById("jobSite");
+
+  // Populate Job Site dropdown
   allowedJobSites.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -47,8 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const getVal = id =>
     document.getElementById(id)?.value?.trim() ?? "";
 
+  let isSubmitting = false;
+
   form.addEventListener("submit", async e => {
     e.preventDefault();
+
+    if (isSubmitting) return; // Prevent double submit
+    isSubmitting = true;
 
     const fullName = getVal("fullName");
     const companyName = getVal("companyName");
@@ -58,11 +63,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!fullName || !companyName) {
       window.setStatus("Full Name and Company Name are required.", "error");
+      isSubmitting = false;
       return;
     }
 
     if (!jobSite || !allowedJobSites.includes(jobSite)) {
       window.setStatus("Please select a valid Job Site.", "error");
+      isSubmitting = false;
       return;
     }
 
@@ -79,34 +86,50 @@ document.addEventListener("DOMContentLoaded", () => {
         phone,
         email,
         signature,
-        acknowledged: true,
-        submittedAt: new Date().toISOString()
+        timestamp: new Date().toISOString()
       };
 
-      const res = await fetch(LOGIC_APP_URL, {
+      const response = await fetch(LOGIC_APP_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
 
-      window.setStatus("Acknowledgement submitted successfully!", "success");
+      window.setStatus(
+        "Acknowledgement submitted successfully!",
+        "success"
+      );
+
       alert("Safety acknowledgement submitted.");
 
+      // Reset form
       form.reset();
-      canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+      canvas.getContext("2d").clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
 
       window.safetyState.videoCompleted = false;
       window.safetyState.signatureCompleted = false;
       window.updateSubmitState();
 
     } catch (err) {
-      console.error(err);
-      window.setStatus("Submission failed. Please try again.", "error");
+      console.error("Submission failed:", err);
+      window.setStatus(
+        "Submission failed. Please try again.",
+        "error"
+      );
     }
+
+    isSubmitting = false;
   });
 });

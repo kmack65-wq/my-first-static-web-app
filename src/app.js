@@ -1,16 +1,34 @@
 console.log("app.js loaded");
 
 /*********************************
+ * GLOBAL STATE (REQUIRED)
+ *********************************/
+window.safetyState = {
+  videoCompleted: false,
+  signatureCompleted: false
+};
+
+window.updateSubmitState = function () {
+  const btn = document.getElementById("submitBtn");
+  if (!btn) return;
+
+  btn.disabled = !(
+    window.safetyState.videoCompleted &&
+    window.safetyState.signatureCompleted
+  );
+};
+
+/*********************************
  * CONFIG
  *********************************/
 const LOGIC_APP_URL =
   "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
 
-// ⚠️ DEV ONLY — set to false for production
+// ✅ DEV ONLY — skip video requirement
 const DEV_SKIP_VIDEO = true;
 
 /*********************************
- * JOB SITES (HARDCODED)
+ * JOB SITES
  *********************************/
 const JOB_SITES = [
   "25-129 PHC Cardiac Rehab",
@@ -41,6 +59,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initJobSites();
   initSignaturePadOnce();
   initFormSubmit();
+
+  if (DEV_SKIP_VIDEO) {
+    window.safetyState.videoCompleted = true;
+    window.updateSubmitState();
+  }
 });
 
 /*********************************
@@ -51,7 +74,6 @@ function initJobSites() {
   if (!select) return;
 
   select.innerHTML = `<option value="">Select a job site</option>`;
-
   JOB_SITES.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -79,10 +101,8 @@ function initSignaturePadOnce() {
   function resize() {
     const ratio = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-
     canvas.width = rect.width * ratio;
     canvas.height = 150 * ratio;
-
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
@@ -92,22 +112,22 @@ function initSignaturePadOnce() {
   resize();
   window.addEventListener("resize", resize);
 
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
   function start(e) {
     drawing = true;
     ctx.beginPath();
-    const p = getPos(e);
+    const p = pos(e);
     ctx.moveTo(p.x, p.y);
     e.preventDefault();
   }
 
   function move(e) {
     if (!drawing) return;
-    const p = getPos(e);
+    const p = pos(e);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
     window.safetyState.signatureCompleted = true;
@@ -140,11 +160,6 @@ function initSignaturePadOnce() {
 function initFormSubmit() {
   const form = document.getElementById("ackForm");
   if (!form) return;
-
-  if (DEV_SKIP_VIDEO) {
-    window.safetyState.videoCompleted = true;
-    window.updateSubmitState();
-  }
 
   form.addEventListener("submit", async e => {
     e.preventDefault();
@@ -179,7 +194,7 @@ function initFormSubmit() {
       `;
     } catch (err) {
       console.error(err);
-      window.setStatus("Submission failed. Please try again.", "error");
+      window.setStatus?.("Submission failed. Please try again.", "error");
     }
   });
 }

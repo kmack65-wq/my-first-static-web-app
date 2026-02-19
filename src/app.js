@@ -3,8 +3,8 @@ console.log("app.js loaded");
 // =====================
 // CONFIG
 // =====================
-const LOGIC_APP_URL = "PASTE_YOUR_LOGIC_APP_URL_HERE";
-const TEST_MODE = false; // set true to bypass video requirement
+const LOGIC_APP_URL = "https://prod-12.northcentralus.logic.azure.com:443/workflows/bdc21a12c859424288de6c5438494284/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=DGjs243f1qFfe7a27mH3jV6PejuwsjYSOoFvtQR8JZQ";
+const TEST_MODE = true; // set true to bypass video requirement
 
 // =====================
 // JOB SITES

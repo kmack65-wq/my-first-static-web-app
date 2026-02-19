@@ -1,14 +1,14 @@
 console.log("app.js loaded");
 
-// ===============================
+// =====================
 // CONFIG
-// ===============================
+// =====================
 const LOGIC_APP_URL = "PASTE_YOUR_LOGIC_APP_URL_HERE";
-const TEST_MODE = false; // set true ONLY when testing without video
+const TEST_MODE = false; // set true to bypass video requirement
 
-// ===============================
+// =====================
 // JOB SITES
-// ===============================
+// =====================
 const JOB_SITES = [
   "25-129 PHC Cardiac Rehab",
   "25-103 Ajax Memphis",
@@ -31,29 +31,22 @@ const JOB_SITES = [
   "Fondren Surgical Suites"
 ];
 
-// ===============================
-// GLOBAL STATE
-// ===============================
 let videoCompleted = false;
 let isDrawing = false;
 let canvas, ctx;
 
-// ===============================
-// INIT
-// ===============================
 document.addEventListener("DOMContentLoaded", () => {
   populateJobSites();
-  setupVideoTracking();
+  setupVideo();
   setupSignaturePad();
-  setupFormSubmit();
+  setupSubmit();
 });
 
-// ===============================
+// =====================
 // JOB SITE DROPDOWN
-// ===============================
+// =====================
 function populateJobSites() {
   const select = document.getElementById("jobSite");
-
   JOB_SITES.forEach(site => {
     const opt = document.createElement("option");
     opt.value = site;
@@ -62,23 +55,22 @@ function populateJobSites() {
   });
 }
 
-// ===============================
-// VIDEO
-// ===============================
-function setupVideoTracking() {
+// =====================
+// VIDEO TRACKING
+// =====================
+function setupVideo() {
   const video = document.getElementById("safetyVideo");
   const status = document.getElementById("videoStatus");
 
   video.addEventListener("ended", () => {
     videoCompleted = true;
     status.textContent = "Video completed. Please sign below.";
-    status.className = "status-success";
   });
 }
 
-// ===============================
+// =====================
 // SIGNATURE PAD
-// ===============================
+// =====================
 function setupSignaturePad() {
   canvas = document.getElementById("signatureCanvas");
   ctx = canvas.getContext("2d");
@@ -102,20 +94,14 @@ function setupSignaturePad() {
 }
 
 function resizeCanvas() {
-  const data = canvas.toDataURL();
   canvas.width = canvas.offsetWidth;
-  canvas.height = 150;
-
+  canvas.height = 160;
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.strokeStyle = "#ffffff";
-
-  const img = new Image();
-  img.src = data;
-  img.onload = () => ctx.drawImage(img, 0, 0);
 }
 
-function getPos(e) {
+function getPosition(e) {
   const rect = canvas.getBoundingClientRect();
   const evt = e.touches ? e.touches[0] : e;
   return {
@@ -127,14 +113,14 @@ function getPos(e) {
 function startDraw(e) {
   isDrawing = true;
   ctx.beginPath();
-  const pos = getPos(e);
+  const pos = getPosition(e);
   ctx.moveTo(pos.x, pos.y);
 }
 
 function draw(e) {
   if (!isDrawing) return;
   e.preventDefault();
-  const pos = getPos(e);
+  const pos = getPosition(e);
   ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
 }
@@ -147,10 +133,10 @@ function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// ===============================
-// FORM SUBMIT
-// ===============================
-function setupFormSubmit() {
+// =====================
+// SUBMIT
+// =====================
+function setupSubmit() {
   document
     .getElementById("ackForm")
     .addEventListener("submit", submitForm);
@@ -180,19 +166,25 @@ async function submitForm(e) {
       body: JSON.stringify(payload)
     });
   } catch (err) {
-    console.error("Submit error:", err);
+    console.error("Submission error:", err);
   }
 
   showSuccessScreen();
 }
 
-// ===============================
+// =====================
 // SUCCESS SCREEN
-// ===============================
+// =====================
 function showSuccessScreen() {
-  document.getElementById("formSection").classList.add("hidden");
-  document.getElementById("successScreen").classList.remove("hidden");
+  const formWrapper = document.getElementById("formWrapper");
+  const successScreen = document.getElementById("successScreen");
+  const submissionTime = document.getElementById("submissionTime");
 
-  document.getElementById("submissionTimestamp").textContent =
-    "Submitted on: " + new Date().toLocaleString();
+  submissionTime.textContent =
+    "Submitted on " + new Date().toLocaleString();
+
+  formWrapper.classList.add("hidden");
+  successScreen.classList.remove("hidden");
+
+  successScreen.scrollIntoView({ behavior: "smooth" });
 }

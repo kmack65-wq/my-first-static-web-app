@@ -189,6 +189,10 @@ button {
   font-size: 0.9rem;
   opacity: 0.75;
 }
+.success-screen p strong {
+  color: #4da3ff;
+  font-size: 1.15rem;
+}
 
 /*********************************
   FOOTER
@@ -199,3 +203,4 @@ footer {
   font-size: 0.85rem;
   color: #94a3b8;
 }
+

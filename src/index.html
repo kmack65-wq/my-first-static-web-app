@@ -4,7 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Safety Orientation Acknowledgement</title>
+
   <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    .hidden {
+      display: none;
+    }
+
+    .success-screen {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .success-screen h1 {
+      color: #4CAF50;
+      margin-bottom: 16px;
+    }
+
+    .success-screen p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+  </style>
 </head>
 
 <body class="dark">
@@ -15,7 +37,9 @@
       <img src="assets/logo.png" alt="Kadean Construction Logo" />
     </div>
 
+    <!-- ========================= -->
     <!-- FORM WRAPPER -->
+    <!-- ========================= -->
     <div id="formWrapper">
 
       <h1>Safety Orientation Acknowledgement</h1>
@@ -23,6 +47,7 @@
       <!-- VIDEO -->
       <section class="section">
         <h2>Required Safety Video</h2>
+
         <div class="video-wrapper">
           <video
             id="trainingVideo"
@@ -34,8 +59,10 @@
               src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
               type="video/mp4"
             />
+            Your browser does not support the video tag.
           </video>
         </div>
+
         <div class="note">
           You must watch the entire video before submitting this form.
         </div>
@@ -52,7 +79,7 @@
           <input id="companyName" required />
 
           <label for="jobSite">Job Site</label>
-          <select id="jobSite">
+          <select id="jobSite" required>
             <option value="">Select a job site</option>
           </select>
 
@@ -66,6 +93,7 @@
         <!-- SIGNATURE -->
         <section class="section">
           <h2>Signature</h2>
+
           <canvas id="signaturePad"></canvas>
 
           <div class="signature-actions">
@@ -80,26 +108,33 @@
         </button>
       </form>
 
+      <!-- STATUS -->
       <div id="status" class="status info"></div>
+
     </div>
 
+    <!-- ========================= -->
     <!-- SUCCESS SCREEN -->
-    <div id="successScreen" class="success-screen hidden">
-      <h1>✅ Submission Complete</h1>
+    <!-- ========================= -->
+    <div id="successScreen" class="hidden success-screen">
+      <h1>Submission Complete</h1>
       <p>
-        Thank you for completing the safety orientation.<br />
-        Your acknowledgement and signature have been recorded.
+        Thank you. Your safety acknowledgement has been successfully recorded.
       </p>
-      <p class="small">You may now close this page.</p>
+      <p>
+        You may now close this page.
+      </p>
     </div>
 
     <footer>
       By submitting this form, you confirm completion of the required safety training.
     </footer>
+
   </div>
 
-  <!-- SCRIPTS -->
+  <!-- SCRIPT ORDER MATTERS -->
   <script src="script.js"></script>
   <script src="app.js"></script>
+
 </body>
 </html>

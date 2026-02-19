@@ -152,3 +152,7 @@ button {
   font-size: 1rem;
   opacity: 0.85;
 }
+.hidden {
+  display: none !important;
+}
+

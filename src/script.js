@@ -1,86 +1,72 @@
-window.safetyState = {
-  videoCompleted: false,
-  signatureCompleted: false
-};
+const canvas = document.getElementById("signaturePad");
+const ctx = canvas.getContext("2d");
 
-function $(id) {
-  return document.getElementById(id);
+let drawing = false;
+
+function resizeCanvas() {
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const rect = canvas.getBoundingClientRect();
+
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+
+    ctx.scale(ratio, ratio);
+
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#ffffff";
 }
 
-function setStatus(msg, type = "info") {
-  const el = $("status");
-  if (!el) return;
-  el.textContent = msg;
-  el.className = `status status-${type}`;
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+function getPosition(e) {
+    const rect = canvas.getBoundingClientRect();
+
+    if (e.touches) {
+        return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top
+        };
+    }
+
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
 }
 
-window.setStatus = setStatus;
-
-function updateSubmitState() {
-  $("submitBtn").disabled = !(
-    window.safetyState.videoCompleted &&
-    window.safetyState.signatureCompleted
-  );
-}
-
-window.updateSubmitState = updateSubmitState;
-
-function initVideoGate() {
-  const video = $("trainingVideo");
-  video.addEventListener("ended", () => {
-    window.safetyState.videoCompleted = true;
-    setStatus("Video completed. Please sign below.", "success");
-    updateSubmitState();
-  });
-}
-
-function initSignaturePad() {
-  const canvas = $("signaturePad");
-  const ctx = canvas.getContext("2d");
-  let drawing = false;
-
-  ctx.strokeStyle = "#fff";
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = "round";
-
-  const getPos = e => {
-    const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  };
-
-  const start = e => {
+function startDrawing(e) {
     drawing = true;
     ctx.beginPath();
-    const p = getPos(e);
-    ctx.moveTo(p.x, p.y);
-  };
-
-  const move = e => {
-    if (!drawing) return;
-    const p = getPos(e);
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-    window.safetyState.signatureCompleted = true;
-    updateSubmitState();
-  };
-
-  const stop = () => drawing = false;
-
-  canvas.addEventListener("mousedown", start);
-  canvas.addEventListener("mousemove", move);
-  canvas.addEventListener("mouseup", stop);
-  canvas.addEventListener("mouseleave", stop);
-
-  $("clearSignature").onclick = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    window.safetyState.signatureCompleted = false;
-    updateSubmitState();
-  };
+    const pos = getPosition(e);
+    ctx.moveTo(pos.x, pos.y);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  initVideoGate();
-  initSignaturePad();
-  updateSubmitState();
-  setStatus("Please watch the video to begin.", "info");
+function draw(e) {
+    if (!drawing) return;
+
+    const pos = getPosition(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+}
+
+function stopDrawing() {
+    drawing = false;
+}
+
+// Mouse
+canvas.addEventListener("mousedown", startDrawing);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("mouseup", stopDrawing);
+canvas.addEventListener("mouseleave", stopDrawing);
+
+// Touch
+canvas.addEventListener("touchstart", startDrawing);
+canvas.addEventListener("touchmove", draw);
+canvas.addEventListener("touchend", stopDrawing);
+
+// Clear button
+document.getElementById("clearSignature").addEventListener("click", () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 });

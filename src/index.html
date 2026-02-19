@@ -7,89 +7,82 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body class="dark">
+<body>
 
   <div class="container">
 
-    <!-- FORM SECTION -->
-    <div id="formSection">
+    <!-- LOGO -->
+    <div class="logo">
+      <img src="logo.png" alt="Kadean Construction" />
+    </div>
 
-      <div class="logo">
-        <img src="assets/logo.png" alt="Kadean Construction" />
-      </div>
+    <!-- FORM WRAPPER -->
+    <div id="formWrapper" class="card">
 
       <h1>Safety Acknowledgement</h1>
 
       <!-- VIDEO -->
-      <section class="section">
-        <h2>Required Safety Video</h2>
+      <h2>Required Safety Video</h2>
 
-        <video
-          id="safetyVideo"
-          width="100%"
-          controls
-          preload="metadata"
-        >
-          <source
-            src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
+      <video
+        id="safetyVideo"
+        controls
+        width="100%"
+      >
+        <source
+          src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
 
-        <p id="videoStatus" class="status-info">
-          You must watch the entire video before submitting.
-        </p>
-      </section>
+      <p id="videoStatus" class="video-note">
+        You must watch the entire video before submitting.
+      </p>
 
       <!-- FORM -->
       <form id="ackForm">
 
-        <section class="section">
-          <label for="fullName">Full Name</label>
-          <input id="fullName" required />
+        <label>Full Name</label>
+        <input id="fullName" required />
 
-          <label for="companyName">Company Name</label>
-          <input id="companyName" required />
+        <label>Company Name</label>
+        <input id="companyName" required />
 
-          <label for="jobSite">Job Site</label>
-          <select id="jobSite" required>
-            <option value="">Select a job site</option>
-          </select>
+        <label>Job Site</label>
+        <select id="jobSite" required>
+          <option value="">Select a job site</option>
+        </select>
 
-          <label for="email">Email</label>
-          <input id="email" type="email" />
-        </section>
+        <label>Email</label>
+        <input id="email" type="email" />
 
         <!-- SIGNATURE -->
-        <section class="section">
-          <h2>Signature</h2>
-
+        <div class="signature-wrapper">
+          <div class="signature-label">Signature</div>
           <canvas id="signatureCanvas"></canvas>
+        </div>
 
-          <button type="button" id="clearSignature">
-            Clear Signature
-          </button>
-        </section>
+        <button type="button" id="clearSignature" class="btn-secondary">
+          Clear Signature
+        </button>
 
-        <button type="submit">
+        <button type="submit" class="btn-primary">
           Submit Acknowledgement
         </button>
+
+        <div class="footer-note">
+          By submitting this form, you confirm completion of the required safety training.
+        </div>
+
       </form>
-
-      <footer>
-        By submitting this form, you confirm completion of the required safety training.
-      </footer>
-
     </div>
 
     <!-- SUCCESS SCREEN -->
     <div id="successScreen" class="success-screen hidden">
       <h1>Submission Complete</h1>
-      <p>
-        Submission complete. Please screenshot this screen.
-      </p>
-      <p id="submissionTimestamp" class="small"></p>
+      <p>Submission complete. Please screenshot this screen.</p>
+      <p id="submissionTime" class="timestamp"></p>
     </div>
 
   </div>

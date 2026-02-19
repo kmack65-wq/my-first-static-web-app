@@ -19,10 +19,10 @@
     <!-- FORM WRAPPER -->
     <div id="formWrapper" class="card">
 
-      <h1>Safety Acknowledgement</h1>
+      <h1 id="pageTitle">Safety Acknowledgement</h1>
 
       <!-- VIDEO -->
-      <h2>Required Safety Video</h2>
+      <h2 id="videoTitle">Required Safety Video</h2>
 
       <video
         id="safetyVideo"
@@ -43,18 +43,18 @@
       <!-- FORM -->
       <form id="ackForm">
 
-        <label>Full Name</label>
+        <label id="labelFullName">Full Name</label>
         <input id="fullName" required />
 
-        <label>Company Name</label>
+        <label id="labelCompany">Company Name</label>
         <input id="companyName" required />
 
-        <label>Job Site</label>
+        <label id="labelJobSite">Job Site</label>
         <select id="jobSite" required>
           <option value="">Select a job site</option>
         </select>
 
-        <label>Email</label>
+        <label id="labelEmail">Email</label>
         <input id="email" type="email" />
 
         <!-- SIGNATURE -->
@@ -63,15 +63,23 @@
           <canvas id="signatureCanvas"></canvas>
         </div>
 
-        <button type="button" id="clearSignature" class="btn-secondary">
+        <button
+          type="button"
+          id="clearSignature"
+          class="btn-secondary"
+        >
           Clear Signature
         </button>
 
-        <button type="submit" class="btn-primary">
+        <button
+          type="submit"
+          id="submitButton"
+          class="btn-primary"
+        >
           Submit Acknowledgement
         </button>
 
-        <div class="footer-note">
+        <div class="footer-note" id="footerNote">
           By submitting this form, you confirm completion of the required safety training.
         </div>
 
@@ -80,21 +88,25 @@
 
     <!-- SUCCESS SCREEN -->
     <div id="successScreen" class="success-screen hidden">
-      <h1>Submission Complete</h1>
-      <p>Submission complete. Please screenshot this screen.</p>
+      <h1 id="successTitle">Submission Complete</h1>
+      <p id="successMessage">
+        Submission complete. Please screenshot this screen.
+      </p>
       <p id="submissionTime" class="timestamp"></p>
     </div>
 
   </div>
 
+  <!-- APP CONFIG -->
   <script>
-  window.APP_CONFIG = {
-    requireVideo: true,
-    language: "en"
-  };
-</script>
-<script src="app.js"></script>
+    window.APP_CONFIG = {
+      requireVideo: true,
+      language: "en"
+    };
+  </script>
+
+  <!-- APP SCRIPT -->
+  <script src="app.js"></script>
+
 </body>
 </html>
-
-

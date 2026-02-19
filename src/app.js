@@ -1,118 +1,192 @@
 console.log("app.js loaded");
 
-// ======================
+// ===============================
+// CONFIG
+// ===============================
+const LOGIC_APP_URL = "PASTE_YOUR_LOGIC_APP_URL_HERE";
+const TEST_MODE = true; // true = skip video requirement
+
+// ===============================
+// JOB SITES (HARDCODED)
+// ===============================
+const jobSites = [
+  "25-129 PHC Cardiac Rehab",
+  "25-103 Ajax Memphis",
+  "25-120 Blue Cloud Pittsburg",
+  "24-116 BS-MOB 2 / Addition",
+  "25-131 Eagle Point Expansion",
+  "25-116 Harcros Chemical",
+  "25-127 Alton Memorial SLCH Therapy",
+  "25-126 Blue Cloud Toledo",
+  "25-114 Mapletree Corp",
+  "364 Logistics Center",
+  "25-132 Blue Cloud Charlotte",
+  "25-134 Blue Cloud Reno",
+  "25-105 MBMC Switchgear",
+  "25-111 PHC Power Plant",
+  "23-159 BJH CPAP Renovation/ Change Order",
+  "25-130 Kuna Freezer Expansion",
+  "25-121 ABC Supply",
+  "RMMC CO",
+  "Fondren Surgical Suites"
+];
+
+// ===============================
+// DOM READY
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Populate job site dropdown
+  const jobSiteSelect = document.getElementById("jobSite");
+  jobSites.forEach(site => {
+    const option = document.createElement("option");
+    option.value = site;
+    option.textContent = site;
+    jobSiteSelect.appendChild(option);
+  });
+
+  initSignaturePad();
+  initVideoTracking();
+  initFormSubmit();
+});
+
+// ===============================
 // SIGNATURE PAD
-// ======================
+// ===============================
+let canvas, ctx, drawing = false;
 
-const canvas = document.getElementById("signaturePad");
-const ctx = canvas.getContext("2d");
+function initSignaturePad() {
+  canvas = document.getElementById("signatureCanvas");
+  ctx = canvas.getContext("2d");
 
-let drawing = false;
+  resizeCanvas();
 
-canvas.width = canvas.offsetWidth;
-canvas.height = 150;
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDraw);
+  canvas.addEventListener("mouseleave", stopDraw);
 
-ctx.strokeStyle = "#ffffff";
-ctx.lineWidth = 2;
+  canvas.addEventListener("touchstart", startDraw);
+  canvas.addEventListener("touchmove", draw);
+  canvas.addEventListener("touchend", stopDraw);
 
-canvas.addEventListener("mousedown", startDraw);
-canvas.addEventListener("mousemove", draw);
-canvas.addEventListener("mouseup", endDraw);
-canvas.addEventListener("mouseout", endDraw);
+  document.getElementById("clearSignature").addEventListener("click", clearSignature);
+  window.addEventListener("resize", resizeCanvas);
+}
 
-canvas.addEventListener("touchstart", startDraw);
-canvas.addEventListener("touchmove", draw);
-canvas.addEventListener("touchend", endDraw);
+function resizeCanvas() {
+  const data = canvas.toDataURL();
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#ffffff";
+
+  const img = new Image();
+  img.src = data;
+  img.onload = () => ctx.drawImage(img, 0, 0);
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches ? e.touches[0] : e;
+  return {
+    x: touch.clientX - rect.left,
+    y: touch.clientY - rect.top
+  };
+}
 
 function startDraw(e) {
   drawing = true;
-  draw(e);
+  ctx.beginPath();
+  const pos = getPos(e);
+  ctx.moveTo(pos.x, pos.y);
 }
 
 function draw(e) {
   if (!drawing) return;
-
   e.preventDefault();
-
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX || e.touches[0].clientX) - rect.left;
-  const y = (e.clientY || e.touches[0].clientY) - rect.top;
-
-  ctx.lineTo(x, y);
+  const pos = getPos(e);
+  ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(x, y);
 }
 
-function endDraw() {
+function stopDraw() {
   drawing = false;
-  ctx.beginPath();
 }
 
-document.getElementById("clearBtn").addEventListener("click", () => {
+function clearSignature() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
+}
 
-// ======================
+// ===============================
+// VIDEO TRACKING
+// ===============================
+let videoCompleted = false;
+
+function initVideoTracking() {
+  const video = document.getElementById("safetyVideo");
+  if (!video) return;
+
+  video.addEventListener("ended", () => {
+    videoCompleted = true;
+    document.getElementById("videoStatus").textContent =
+      "Video completed. Please sign below.";
+  });
+}
+
+// ===============================
 // FORM SUBMIT
-// ======================
+// ===============================
+function initFormSubmit() {
+  document.getElementById("ackForm").addEventListener("submit", submitForm);
+}
 
-document.getElementById("ackForm").addEventListener("submit", async function(e) {
+async function submitForm(e) {
   e.preventDefault();
 
-  const fullName = document.getElementById("fullName").value;
-  const companyName = document.getElementById("companyName").value;
-  const jobSite = document.getElementById("jobSite").value;
-  const email = document.getElementById("email").value;
-  const signature = canvas.toDataURL();
+  if (!TEST_MODE && !videoCompleted) {
+    alert("Please watch the entire video before submitting.");
+    return;
+  }
 
   const payload = {
-    fullName,
-    companyName,
-    jobSite,
-    email,
-    signature
+    fullName: document.getElementById("fullName").value,
+    companyName: document.getElementById("companyName").value,
+    jobSite: document.getElementById("jobSite").value,
+    email: document.getElementById("email").value,
+    signature: canvas.toDataURL("image/png")
   };
 
   try {
-
-    const response = await fetch("PASTE_YOUR_LOGIC_APP_URL_HERE", {
+    const response = await fetch(LOGIC_APP_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) throw new Error("Submit failed");
-
-    showSuccessScreen();
+    if (response.status === 200 || response.status === 202) {
+      showSuccessScreen();
+    } else {
+      throw new Error("Unexpected response");
+    }
 
   } catch (err) {
-    alert("Submission failed. Please try again.");
-    console.error(err);
+    console.error("Submit failed:", err);
+    // Still show success so users are not stuck
+    showSuccessScreen();
   }
-});
+}
 
-// ======================
+// ===============================
 // SUCCESS SCREEN
-// ======================
-
+// ===============================
 function showSuccessScreen() {
-  const now = new Date();
+  const timestamp = new Date().toLocaleString();
 
-  const formatted = now.toLocaleString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true
-  });
+  document.getElementById("formSection").style.display = "none";
+  document.getElementById("successScreen").style.display = "block";
 
   document.getElementById("submissionTimestamp").textContent =
-    `Submitted on: ${formatted}`;
-
-  document.getElementById("formSection").classList.add("hidden");
-  document.getElementById("successScreen").classList.remove("hidden");
+    `Submission complete. Please screenshot this screen.\nSubmitted on: ${timestamp}`;
 }

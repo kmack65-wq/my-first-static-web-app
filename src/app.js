@@ -4,12 +4,12 @@ console.log("app.js loaded");
 // CONFIG
 // ===============================
 const LOGIC_APP_URL = "PASTE_YOUR_LOGIC_APP_URL_HERE";
-const TEST_MODE = true; // true = skip video requirement
+const TEST_MODE = false; // set true ONLY when testing without video
 
 // ===============================
-// JOB SITES (HARDCODED)
+// JOB SITES
 // ===============================
-const jobSites = [
+const JOB_SITES = [
   "25-129 PHC Cardiac Rehab",
   "25-103 Ajax Memphis",
   "25-120 Blue Cloud Pittsburg",
@@ -32,30 +32,54 @@ const jobSites = [
 ];
 
 // ===============================
-// DOM READY
+// GLOBAL STATE
+// ===============================
+let videoCompleted = false;
+let isDrawing = false;
+let canvas, ctx;
+
+// ===============================
+// INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {
-
-  // Populate job site dropdown
-  const jobSiteSelect = document.getElementById("jobSite");
-  jobSites.forEach(site => {
-    const option = document.createElement("option");
-    option.value = site;
-    option.textContent = site;
-    jobSiteSelect.appendChild(option);
-  });
-
-  initSignaturePad();
-  initVideoTracking();
-  initFormSubmit();
+  populateJobSites();
+  setupVideoTracking();
+  setupSignaturePad();
+  setupFormSubmit();
 });
+
+// ===============================
+// JOB SITE DROPDOWN
+// ===============================
+function populateJobSites() {
+  const select = document.getElementById("jobSite");
+
+  JOB_SITES.forEach(site => {
+    const opt = document.createElement("option");
+    opt.value = site;
+    opt.textContent = site;
+    select.appendChild(opt);
+  });
+}
+
+// ===============================
+// VIDEO
+// ===============================
+function setupVideoTracking() {
+  const video = document.getElementById("safetyVideo");
+  const status = document.getElementById("videoStatus");
+
+  video.addEventListener("ended", () => {
+    videoCompleted = true;
+    status.textContent = "Video completed. Please sign below.";
+    status.className = "status-success";
+  });
+}
 
 // ===============================
 // SIGNATURE PAD
 // ===============================
-let canvas, ctx, drawing = false;
-
-function initSignaturePad() {
+function setupSignaturePad() {
   canvas = document.getElementById("signatureCanvas");
   ctx = canvas.getContext("2d");
 
@@ -70,14 +94,18 @@ function initSignaturePad() {
   canvas.addEventListener("touchmove", draw);
   canvas.addEventListener("touchend", stopDraw);
 
-  document.getElementById("clearSignature").addEventListener("click", clearSignature);
+  document
+    .getElementById("clearSignature")
+    .addEventListener("click", clearSignature);
+
   window.addEventListener("resize", resizeCanvas);
 }
 
 function resizeCanvas() {
   const data = canvas.toDataURL();
   canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
+  canvas.height = 150;
+
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.strokeStyle = "#ffffff";
@@ -89,22 +117,22 @@ function resizeCanvas() {
 
 function getPos(e) {
   const rect = canvas.getBoundingClientRect();
-  const touch = e.touches ? e.touches[0] : e;
+  const evt = e.touches ? e.touches[0] : e;
   return {
-    x: touch.clientX - rect.left,
-    y: touch.clientY - rect.top
+    x: evt.clientX - rect.left,
+    y: evt.clientY - rect.top
   };
 }
 
 function startDraw(e) {
-  drawing = true;
+  isDrawing = true;
   ctx.beginPath();
   const pos = getPos(e);
   ctx.moveTo(pos.x, pos.y);
 }
 
 function draw(e) {
-  if (!drawing) return;
+  if (!isDrawing) return;
   e.preventDefault();
   const pos = getPos(e);
   ctx.lineTo(pos.x, pos.y);
@@ -112,7 +140,7 @@ function draw(e) {
 }
 
 function stopDraw() {
-  drawing = false;
+  isDrawing = false;
 }
 
 function clearSignature() {
@@ -120,26 +148,12 @@ function clearSignature() {
 }
 
 // ===============================
-// VIDEO TRACKING
-// ===============================
-let videoCompleted = false;
-
-function initVideoTracking() {
-  const video = document.getElementById("safetyVideo");
-  if (!video) return;
-
-  video.addEventListener("ended", () => {
-    videoCompleted = true;
-    document.getElementById("videoStatus").textContent =
-      "Video completed. Please sign below.";
-  });
-}
-
-// ===============================
 // FORM SUBMIT
 // ===============================
-function initFormSubmit() {
-  document.getElementById("ackForm").addEventListener("submit", submitForm);
+function setupFormSubmit() {
+  document
+    .getElementById("ackForm")
+    .addEventListener("submit", submitForm);
 }
 
 async function submitForm(e) {
@@ -155,38 +169,30 @@ async function submitForm(e) {
     companyName: document.getElementById("companyName").value,
     jobSite: document.getElementById("jobSite").value,
     email: document.getElementById("email").value,
-    signature: canvas.toDataURL("image/png")
+    signature: canvas.toDataURL("image/png"),
+    timestamp: new Date().toISOString()
   };
 
   try {
-    const response = await fetch(LOGIC_APP_URL, {
+    await fetch(LOGIC_APP_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
-    if (response.status === 200 || response.status === 202) {
-      showSuccessScreen();
-    } else {
-      throw new Error("Unexpected response");
-    }
-
   } catch (err) {
-    console.error("Submit failed:", err);
-    // Still show success so users are not stuck
-    showSuccessScreen();
+    console.error("Submit error:", err);
   }
+
+  showSuccessScreen();
 }
 
 // ===============================
 // SUCCESS SCREEN
 // ===============================
 function showSuccessScreen() {
-  const timestamp = new Date().toLocaleString();
-
-  document.getElementById("formSection").style.display = "none";
-  document.getElementById("successScreen").style.display = "block";
+  document.getElementById("formSection").classList.add("hidden");
+  document.getElementById("successScreen").classList.remove("hidden");
 
   document.getElementById("submissionTimestamp").textContent =
-    `Submission complete. Please screenshot this screen.\nSubmitted on: ${timestamp}`;
+    "Submitted on: " + new Date().toLocaleString();
 }

@@ -193,6 +193,13 @@ button {
   color: #4da3ff;
   font-size: 1.15rem;
 }
+.timestamp {
+  margin-top: 12px;
+  font-size: 1rem;
+  color: #4da3ff;
+  font-weight: 500;
+}
+
 
 /*********************************
   FOOTER
@@ -203,4 +210,5 @@ footer {
   font-size: 0.85rem;
   color: #94a3b8;
 }
+
 

@@ -15,80 +15,90 @@
       <img src="assets/logo.png" alt="Kadean Construction Logo" />
     </div>
 
-    <h1>Safety Orientation Acknowledgement</h1>
+    <!-- FORM WRAPPER -->
+    <div id="formWrapper">
 
-    <!-- VIDEO -->
-    <section class="section">
-      <h2>Required Safety Video</h2>
+      <h1>Safety Orientation Acknowledgement</h1>
 
-      <div class="video-wrapper">
-        <video
-          id="trainingVideo"
-          width="100%"
-          controls
-          controlsList="nodownload"
-        >
-          <source
-            src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
-      </div>
-
-      <div class="note">
-        You must watch the entire video before submitting this form.
-      </div>
-    </section>
-
-    <!-- FORM -->
-    <form id="ackForm">
-
+      <!-- VIDEO -->
       <section class="section">
-        <label for="fullName">Full Name</label>
-        <input id="fullName" required />
-
-        <label for="companyName">Company Name</label>
-        <input id="companyName" required />
-
-        <label for="jobSite">Job Site</label>
-        <select id="jobSite">
-          <option value="">Select a job site</option>
-        </select>
-
-        <label for="phone">Phone</label>
-        <input id="phone" />
-
-        <label for="email">Email</label>
-        <input id="email" type="email" />
-      </section>
-
-      <!-- SIGNATURE -->
-      <section class="section">
-        <h2>Signature</h2>
-        <canvas id="signaturePad"></canvas>
-
-        <div class="signature-actions">
-          <button type="button" id="clearSignature">
-            Clear Signature
-          </button>
+        <h2>Required Safety Video</h2>
+        <div class="video-wrapper">
+          <video
+            id="trainingVideo"
+            width="100%"
+            controls
+            controlsList="nodownload"
+          >
+            <source
+              src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
+              type="video/mp4"
+            />
+          </video>
+        </div>
+        <div class="note">
+          You must watch the entire video before submitting this form.
         </div>
       </section>
 
-      <button id="submitBtn" type="submit" disabled>
-        Submit Acknowledgement
-      </button>
-    </form>
+      <!-- FORM -->
+      <form id="ackForm">
 
-    <!-- STATUS -->
-    <div id="status" class="status info"></div>
+        <section class="section">
+          <label for="fullName">Full Name</label>
+          <input id="fullName" required />
+
+          <label for="companyName">Company Name</label>
+          <input id="companyName" required />
+
+          <label for="jobSite">Job Site</label>
+          <select id="jobSite">
+            <option value="">Select a job site</option>
+          </select>
+
+          <label for="phone">Phone</label>
+          <input id="phone" />
+
+          <label for="email">Email</label>
+          <input id="email" type="email" />
+        </section>
+
+        <!-- SIGNATURE -->
+        <section class="section">
+          <h2>Signature</h2>
+          <canvas id="signaturePad"></canvas>
+
+          <div class="signature-actions">
+            <button type="button" id="clearSignature">
+              Clear Signature
+            </button>
+          </div>
+        </section>
+
+        <button id="submitBtn" type="submit" disabled>
+          Submit Acknowledgement
+        </button>
+      </form>
+
+      <div id="status" class="status info"></div>
+    </div>
+
+    <!-- SUCCESS SCREEN -->
+    <div id="successScreen" class="success-screen hidden">
+      <h1>✅ Submission Complete</h1>
+      <p>
+        Thank you for completing the safety orientation.<br />
+        Your acknowledgement and signature have been recorded.
+      </p>
+      <p class="small">You may now close this page.</p>
+    </div>
 
     <footer>
       By submitting this form, you confirm completion of the required safety training.
     </footer>
   </div>
 
-  <!-- Script Order Matters -->
+  <!-- SCRIPTS -->
   <script src="script.js"></script>
   <script src="app.js"></script>
 </body>

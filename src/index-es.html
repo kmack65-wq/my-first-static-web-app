@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Safety Acknowledgement</title>
+  <title>Confirmación de Seguridad</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -19,10 +19,10 @@
     <!-- FORM WRAPPER -->
     <div id="formWrapper" class="card">
 
-      <h1>Safety Acknowledgement</h1>
+      <h1 id="pageTitle">Confirmación de Seguridad</h1>
 
       <!-- VIDEO -->
-      <h2>Required Safety Video</h2>
+      <h2 id="videoTitle">Video de Seguridad Requerido</h2>
 
       <video
         id="safetyVideo"
@@ -30,49 +30,57 @@
         width="100%"
       >
         <source
-          src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
+          src="https://kadeansafetyvideos.blob.core.windows.net/videos/20260108_kadean_construction_orientation_spanish_v1_v1%20(1080p).mp4"
           type="video/mp4"
         />
-        Your browser does not support the video tag.
+        Su navegador no admite el elemento de video.
       </video>
 
       <p id="videoStatus" class="video-note">
-        You must watch the entire video before submitting.
+        Debe ver el video completo antes de enviar.
       </p>
 
       <!-- FORM -->
       <form id="ackForm">
 
-        <label>Full Name</label>
+        <label id="labelFullName">Nombre Completo</label>
         <input id="fullName" required />
 
-        <label>Company Name</label>
+        <label id="labelCompany">Nombre de la Empresa</label>
         <input id="companyName" required />
 
-        <label>Job Site</label>
+        <label id="labelJobSite">Lugar de Trabajo</label>
         <select id="jobSite" required>
-          <option value="">Select a job site</option>
+          <option value="">Seleccione un sitio de trabajo</option>
         </select>
 
-        <label>Email</label>
+        <label id="labelEmail">Correo Electrónico</label>
         <input id="email" type="email" />
 
         <!-- SIGNATURE -->
         <div class="signature-wrapper">
-          <div class="signature-label">Signature</div>
+          <div class="signature-label">Firma</div>
           <canvas id="signatureCanvas"></canvas>
         </div>
 
-        <button type="button" id="clearSignature" class="btn-secondary">
-          Clear Signature
+        <button
+          type="button"
+          id="clearSignature"
+          class="btn-secondary"
+        >
+          Borrar Firma
         </button>
 
-        <button type="submit" class="btn-primary">
-          Submit Acknowledgement
+        <button
+          type="submit"
+          id="submitButton"
+          class="btn-primary"
+        >
+          Enviar Confirmación
         </button>
 
-        <div class="footer-note">
-          By submitting this form, you confirm completion of the required safety training.
+        <div class="footer-note" id="footerNote">
+          Al enviar este formulario, usted confirma que completó la capacitación de seguridad requerida.
         </div>
 
       </form>
@@ -80,19 +88,25 @@
 
     <!-- SUCCESS SCREEN -->
     <div id="successScreen" class="success-screen hidden">
-      <h1>Submission Complete</h1>
-      <p>Submission complete. Please screenshot this screen.</p>
+      <h1 id="successTitle">Envío Completo</h1>
+      <p id="successMessage">
+        Envío completo. Por favor tome una captura de pantalla.
+      </p>
       <p id="submissionTime" class="timestamp"></p>
     </div>
 
   </div>
 
-<script>
-  window.APP_CONFIG = {
-    requireVideo: true,
-    language: "es"
-  };
-</script>
-<script src="app.js"></script>
+  <!-- APP CONFIG -->
+  <script>
+    window.APP_CONFIG = {
+      requireVideo: true,
+      language: "es"
+    };
+  </script>
+
+  <!-- APP SCRIPT -->
+  <script src="app.js"></script>
+
 </body>
 </html>

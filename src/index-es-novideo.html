@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safety Acknowledgement</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- LOGO -->
+    <div class="logo">
+      <img src="assets/logo.png" alt="Kadean Construction" />
+    </div>
+
+    <!-- FORM WRAPPER -->
+    <div id="formWrapper" class="card">
+
+      <h1>Safety Acknowledgement</h1>
+
+      <!-- VIDEO -->
+      <h2>Required Safety Video</h2>
+
+      <video
+        id="safetyVideo"
+        controls
+        width="100%"
+      >
+        <source
+          src="https://kadeansafetyvideos.blob.core.windows.net/videos/SafetyVideo2025.mp4"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+
+      <p id="videoStatus" class="video-note">
+        You must watch the entire video before submitting.
+      </p>
+
+      <!-- FORM -->
+      <form id="ackForm">
+
+        <label>Full Name</label>
+        <input id="fullName" required />
+
+        <label>Company Name</label>
+        <input id="companyName" required />
+
+        <label>Job Site</label>
+        <select id="jobSite" required>
+          <option value="">Select a job site</option>
+        </select>
+
+        <label>Email</label>
+        <input id="email" type="email" />
+
+        <!-- SIGNATURE -->
+        <div class="signature-wrapper">
+          <div class="signature-label">Signature</div>
+          <canvas id="signatureCanvas"></canvas>
+        </div>
+
+        <button type="button" id="clearSignature" class="btn-secondary">
+          Clear Signature
+        </button>
+
+        <button type="submit" class="btn-primary">
+          Submit Acknowledgement
+        </button>
+
+        <div class="footer-note">
+          By submitting this form, you confirm completion of the required safety training.
+        </div>
+
+      </form>
+    </div>
+
+    <!-- SUCCESS SCREEN -->
+    <div id="successScreen" class="success-screen hidden">
+      <h1>Submission Complete</h1>
+      <p>Submission complete. Please screenshot this screen.</p>
+      <p id="submissionTime" class="timestamp"></p>
+    </div>
+
+  </div>
+
+<script>
+  window.APP_CONFIG = {
+    requireVideo: false,
+    language: "es"
+  };
+</script>
+<script src="app.js"></script>
+</body>
+</html>

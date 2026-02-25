@@ -85,7 +85,29 @@ document.addEventListener("DOMContentLoaded", () => {
   setupVideo();
   setupSignaturePad();
   setupSubmit();
-});
+  
+const phoneInput = document.getElementById("phone");
+
+if (phoneInput) {
+  phoneInput.addEventListener("input", (e) => {
+    const input = e.target;
+
+    // Save cursor + previous length
+    const cursorPosition = input.selectionStart;
+    const previousLength = input.value.length;
+
+    // Format
+    const formatted = formatPhoneNumber(input.value);
+    input.value = formatted;
+
+    // Restore cursor correctly
+    const newLength = formatted.length;
+    const diff = newLength - previousLength;
+    const newCursor = Math.max(cursorPosition + diff, 0);
+
+    input.setSelectionRange(newCursor, newCursor);
+  });
+}
 
 // =====================
 // APPLY TRANSLATIONS

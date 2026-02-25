@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const cursorPosition = input.selectionStart;
       const previousLength = input.value.length;
 
-      const formatted = formatPhoneNumber(input.value);
+     const formatted = formatPhone(input.value);
       input.value = formatted;
 
       const newLength = formatted.length;

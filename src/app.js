@@ -23,6 +23,7 @@ const TEXT = {
     companyName: "Company Name",
     jobSite: "Job Site",
     email: "Email",
+    phone: "Phone",
     clear: "Clear Signature",
     submit: "Submit Acknowledgement",
     footer: "By submitting this form, you confirm completion of the required safety training.",
@@ -38,6 +39,7 @@ const TEXT = {
     companyName: "Nombre de la Empresa",
     jobSite: "Lugar de Trabajo",
     email: "Correo Electrónico",
+    phone: "Teléfono",
     clear: "Borrar Firma",
     submit: "Enviar Confirmación",
     footer: "Al enviar este formulario, usted confirma que completó la capacitación de seguridad requerida.",
@@ -103,6 +105,7 @@ function applyTranslations() {
   set("labelCompany", t.companyName);
   set("labelJobSite", t.jobSite);
   set("labelEmail", t.email);
+  set("labelPhone", t.phone);
   set("clearSignature", t.clear);
   set("submitButton", t.submit);
   set("footerNote", t.footer);
@@ -235,6 +238,7 @@ async function submitForm(e) {
     companyName: document.getElementById("companyName").value,
     jobSite: document.getElementById("jobSite").value,
     email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
     signature: canvas.toDataURL("image/png"),
     timestamp: new Date().toISOString()
   };

@@ -85,29 +85,27 @@ document.addEventListener("DOMContentLoaded", () => {
   setupVideo();
   setupSignaturePad();
   setupSubmit();
-  
-const phoneInput = document.getElementById("phone");
 
-if (phoneInput) {
-  phoneInput.addEventListener("input", (e) => {
-    const input = e.target;
+  const phoneInput = document.getElementById("phone");
 
-    // Save cursor + previous length
-    const cursorPosition = input.selectionStart;
-    const previousLength = input.value.length;
+  if (phoneInput) {
+    phoneInput.addEventListener("input", (e) => {
+      const input = e.target;
 
-    // Format
-    const formatted = formatPhoneNumber(input.value);
-    input.value = formatted;
+      const cursorPosition = input.selectionStart;
+      const previousLength = input.value.length;
 
-    // Restore cursor correctly
-    const newLength = formatted.length;
-    const diff = newLength - previousLength;
-    const newCursor = Math.max(cursorPosition + diff, 0);
+      const formatted = formatPhoneNumber(input.value);
+      input.value = formatted;
 
-    input.setSelectionRange(newCursor, newCursor);
-  });
-}
+      const newLength = formatted.length;
+      const diff = newLength - previousLength;
+      const newCursor = Math.max(cursorPosition + diff, 0);
+
+      input.setSelectionRange(newCursor, newCursor);
+    });
+  }
+});
 
 // =====================
 // APPLY TRANSLATIONS

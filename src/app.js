@@ -71,6 +71,7 @@ const JOB_SITES = [
   "23-159 BJH CPAP Renovation/ Change Order",
   "25-130 Kuna Freezer Expansion",
   "25-121 ABC Supply",
+  "26-107 Beck Flavors",
   "RMMC CO",
   "Fondren Surgical Suites"
 ];

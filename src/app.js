@@ -63,7 +63,7 @@ const JOB_SITES = [
   "25-127 Alton Memorial SLCH Therapy",
   "25-126 Blue Cloud Toledo",
   "25-114 Mapletree Corp",
-  "364 Logistics Center",
+  "25-138 364 Logistics Center",
   "25-132 Blue Cloud Charlotte",
   "25-134 Blue Cloud Reno",
   "25-105 MBMC Switchgear",
@@ -72,8 +72,12 @@ const JOB_SITES = [
   "25-130 Kuna Freezer Expansion",
   "25-121 ABC Supply",
   "26-107 Beck Flavors",
-  "RMMC CO",
-  "Fondren Surgical Suites"
+  "25-140 RMMC CO",
+  "26-108 Fondren Surgical Suites",
+  "25-137 Project Star",
+  "26-110 Mygrant Glass",
+  "26-102 MBMC-SSH-MRI Replacement",
+  "26-105 CRx Vault"
 ];
 
 let videoCompleted = false;

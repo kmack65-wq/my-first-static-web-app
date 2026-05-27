@@ -77,7 +77,8 @@ const JOB_SITES = [
   "25-137 Project Star",
   "26-110 Mygrant Glass",
   "26-102 MBMC-SSH-MRI Replacement",
-  "26-105 CRx Vault"
+  "26-105 CRx Vault",
+  "26-112 Memphis Central Fill"
 ];
 
 let videoCompleted = false;

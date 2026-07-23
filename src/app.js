@@ -80,7 +80,8 @@ const JOB_SITES = [
   "26-102 MBMC-SSH-MRI Replacement",
   "26-105 CRx Vault",
   "26-112 Memphis Central Fill",
-  "26-115 Compass 70 Building 4"
+  "26-115 Compass 70 Building 4",
+  "26-124 BJC Behavioral Health SE Renovation"
 ];
 
 let videoCompleted = false;

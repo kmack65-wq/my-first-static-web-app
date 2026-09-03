@@ -81,7 +81,18 @@ const JOB_SITES = [
   "26-105 CRx Vault",
   "26-112 Memphis Central Fill",
   "26-115 Compass 70 Building 4",
-  "26-124 BJC Behavioral Health SE Renovation"
+  "26-124 BJC Behavioral Health SE Renovation",
+  "26-116 MBS - MOB Sprinkler Upgrades",
+  "26-120 Research Blvd Ext Reno",
+  "26-124 BJC Behavioral Health SE Reno",
+  "26-123 Parkview Soffit Repair",
+  "23-159 CPAP Reno/Change Order",
+  "25-130 Kuna Dupo",
+  "25-127 Alton Memorial SLCH Therapy",
+  "26-113 Project Sucker",
+  "26-125 Kuna Peoria",
+  "26-121 BJH CAM 7th Fl Reno",
+  "25-134 Blue Cloud Reno, NV"
 ];
 
 let videoCompleted = false;

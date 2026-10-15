@@ -92,7 +92,13 @@ const JOB_SITES = [
   "26-113 Project Sucker",
   "26-125 Kuna Peoria",
   "26-121 BJH CAM 7th Fl Reno",
-  "25-134 Blue Cloud Reno, NV"
+  "25-134 Blue Cloud Reno, NV",
+  "26-120 Research Blvd Ext Reno",
+  "25-102 Blue Cloud Omaha Waiting Rm",
+  "26-123 Parkview Soffit Repair",
+  "25-134 BJC OC MRI Replacement",
+  "25-134 Blue Cloud Reno NV",
+  "25-130 Kuna Dupo",
 ];
 
 let videoCompleted = false;
